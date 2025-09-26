@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://trafficprediction.com/schemas/traffic-alert.json",
+  "title": "Traffic Alert",
+  "description": "Schema for traffic alerts and incidents published to traffic-alerts topic (Task 7.3)",
+  "type": "object",
+  "required": ["alert_id", "segment_id", "alert_type", "severity", "timestamp", "coordinates", "status"],
+  "properties": {
+    "alert_id": {
+      "type": "string",
+      "description": "Unique identifier for the traffic alert",
+      "pattern": "^ALERT_[A-Za-z0-9_-]+$",
+      "minLength": 7,
+      "maxLength": 64
+    },
+    "segment_id": {
+      "type": "string",
+      "description": "Road segment identifier where the alert occurred",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 32
+    },
+    "alert_type": {
+      "type": "string",
+      "description": "Type of traffic alert or incident",
+      "enum": [
+        "ACCIDENT",
+        "ROADWORK",
+        "WEATHER",
+        "CONGESTION",
+        "INCIDENT",
+        "LANE_CLOSURE",
+        "VEHICLE_BREAKDOWN",
+        "HAZARD",
+        "SPECIAL_EVENT",
+        "SYSTEM_ANOMALY"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "description": "Severity level of the alert",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "Time when the alert was generated (epoch milliseconds)",
+      "minimum": 1000000000000,
+      "maximum": 9999999999999
+    },
+    "coordinates": {
+      "type": "object",
+      "description": "Geographic location of the alert",
+      "required": ["latitude", "longitude"],
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "description": "Latitude coordinate",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude coordinate",
+          "minimum": -180,
+          "maximum": 180
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the alert",
+      "enum": ["ACTIVE", "RESOLVED", "INVESTIGATING", "CLEARED"]
+    },
+    "description": {
+      "type": ["string", "null"],
+      "description": "Human-readable description of the alert",
+      "maxLength": 500
+    },
+    "affected_lanes": {
+      "type": ["array", "null"],
+      "description": "List of affected lane numbers",
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10
+      },
+      "maxItems": 10
+    },
+    "estimated_duration": {
+      "type": ["integer", "null"],
+      "description": "Estimated duration of the incident in minutes",
+      "minimum": 0,
+      "maximum": 10080
+    },
+    "traffic_impact": {
+      "type": "object",
+      "description": "Impact on traffic flow",
+      "properties": {
+        "speed_reduction": {
+          "type": ["number", "null"],
+          "description": "Percentage reduction in average speed (0-100)",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "delay_minutes": {
+          "type": ["integer", "null"],
+          "description": "Estimated delay in minutes",
+          "minimum": 0,
+          "maximum": 600
+        },
+        "affected_distance": {
+          "type": ["number", "null"],
+          "description": "Distance affected by the incident in kilometers",
+          "minimum": 0,
+          "maximum": 50
+        }
+      },
+      "additionalProperties": false
+    },
+    "detection_source": {
+      "type": "string",
+      "description": "Source that detected the alert",
+      "enum": ["AUTOMATED_SYSTEM", "MANUAL_REPORT", "THIRD_PARTY", "PREDICTION_MODEL", "SENSOR_ANOMALY"]
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "Confidence score for the alert (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "related_alerts": {
+      "type": ["array", "null"],
+      "description": "IDs of related or connected alerts",
+      "items": {
+        "type": "string",
+        "pattern": "^ALERT_[A-Za-z0-9_-]+$"
+      },
+      "maxItems": 10
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata for the alert",
+      "properties": {
+        "weather_conditions": {
+          "type": ["string", "null"],
+          "description": "Weather conditions at the time of alert"
+        },
+        "visibility": {
+          "type": ["string", "null"],
+          "description": "Visibility conditions",
+          "enum": ["CLEAR", "REDUCED", "POOR", "VERY_POOR"]
+        },
+        "emergency_services": {
+          "type": ["boolean", "null"],
+          "description": "Whether emergency services are involved"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "alert_id": "ALERT_20250919_ACC_001",
+      "segment_id": "SEG_I405_N_001",
+      "alert_type": "ACCIDENT",
+      "severity": "HIGH",
+      "timestamp": 1726750800000,
+      "coordinates": {
+        "latitude": 34.0522,
+        "longitude": -118.2437
+      },
+      "status": "ACTIVE",
+      "description": "Multi-vehicle accident blocking lanes 2 and 3",
+      "affected_lanes": [2, 3],
+      "estimated_duration": 45,
+      "traffic_impact": {
+        "speed_reduction": 65.0,
+        "delay_minutes": 25,
+        "affected_distance": 2.5
+      },
+      "detection_source": "AUTOMATED_SYSTEM",
+      "confidence_score": 0.89,
+      "related_alerts": null,
+      "metadata": {
+        "weather_conditions": "clear",
+        "visibility": "CLEAR",
+        "emergency_services": true
+      }
+    }
+  ]
+}

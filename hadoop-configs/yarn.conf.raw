@@ -1,0 +1,7 @@
+yarn_resourcemanager_resource__tracker_address: resourcemanager:8031
+yarn_resourcemanager_hostname: resourcemanager
+yarn_resourcemanager_address: resourcemanager:8032
+yarn_nodemanager_webapp_address: 0.0.0.0:8042
+yarn_nodemanager_aux___services: mapreduce_shuffle
+yarn_resourcemanager_hostname: resourcemanager
+yarn_nodemanager_resource_cpu___vcores: 4

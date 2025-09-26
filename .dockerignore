@@ -1,0 +1,161 @@
+# ========================================
+# DOCKER IGNORE - Container Size Optimization
+# ========================================
+# Reduces Docker image sizes by excluding unnecessary files
+
+# ==========================================
+# LARGE DEPENDENCIES & BUILD ARTIFACTS
+# ==========================================
+# Node.js dependencies (will be installed in container)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python virtual environments (will be created in container)
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# ==========================================
+# DATA FILES (Large datasets)
+# ==========================================
+# Exclude large datasets from Docker images
+data/raw/metr-la/
+data/processed/*.csv
+data/metr-la/
+*.pkl
+*.joblib
+
+# Keep only essential metadata files
+!data/raw/metr_la_sensor_metadata.csv
+!data/raw/sample_dataset_summary.json
+
+# ==========================================
+# LOGS & TEMPORARY FILES
+# ==========================================
+logs/
+*.log
+*.log.*
+tmp/
+temp/
+.tmp/
+.temp/
+
+# ==========================================
+# DEVELOPMENT FILES
+# ==========================================
+# Editor and IDE files
+.vscode/
+.cursor/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git history (not needed in container)
+.git/
+.gitignore
+
+# AI assistant rules
+.clinerules/
+.kilocode/
+.roo/
+.windsurf/
+.trae/
+.taskmaster/
+
+# ==========================================
+# DOCUMENTATION (Keep essential only)
+# ==========================================
+# Large documentation files (available in repo)
+docs/COMPREHENSIVE_DOCUMENTATION.md
+COMPLETE_PROJECT_EXPLANATION.md
+VISUAL_WORKFLOW_DIAGRAMS.md
+PROJECT_REPORT_CONTENT.md
+POWERPOINT_SLIDES_CONTENT.md
+
+# Keep essential docs
+!README.md
+!docs/CONFIGURATION.md
+
+# ==========================================
+# OPERATING SYSTEM FILES
+# ==========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ==========================================
+# TEST & COVERAGE FILES
+# ==========================================
+# Test outputs (not needed in production)
+coverage/
+test-results/
+.nyc_output/
+*.xml
+
+# Keep essential test files
+!tests/integration_test.py
+
+# ==========================================
+# SECRETS & ENVIRONMENT
+# ==========================================
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+# Configuration with secrets
+producer_config.ini
+
+# ==========================================
+# CACHE & TEMPORARY
+# ==========================================
+# Cache directories
+.cache/
+.npm/
+.eslintcache
+.parcel-cache/
+
+# Temporary files
+*.tmp
+*.temp
+
+# ==========================================
+# KEEP ESSENTIAL FILES
+# ==========================================
+# Force include critical files
+!docker-compose.yml
+!Dockerfile*
+!requirements*.txt
+!package.json
+!tsconfig.json
+!next.config.*
+!schemas/
+!config/
+!scripts/

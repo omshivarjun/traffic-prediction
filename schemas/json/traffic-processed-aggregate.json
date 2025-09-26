@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://trafficprediction.com/schemas/traffic-processed-aggregate.json",
+  "title": "Traffic Processed Aggregate",
+  "description": "Schema for processed traffic aggregates published to traffic-processed topic (Task 7.3)",
+  "type": "object",
+  "required": ["aggregate_id", "segment_id", "window_start", "window_end", "avg_speed", "vehicle_count", "occupancy_avg", "quality_score"],
+  "properties": {
+    "aggregate_id": {
+      "type": "string",
+      "description": "Unique identifier for the processed aggregate",
+      "pattern": "^AGG_[A-Za-z0-9_-]+$",
+      "minLength": 5,
+      "maxLength": 64
+    },
+    "segment_id": {
+      "type": "string",
+      "description": "Road segment identifier for the aggregated data",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 32
+    },
+    "window_start": {
+      "type": "integer",
+      "description": "Start of the aggregation window (epoch milliseconds)",
+      "minimum": 1000000000000,
+      "maximum": 9999999999999
+    },
+    "window_end": {
+      "type": "integer",
+      "description": "End of the aggregation window (epoch milliseconds)",
+      "minimum": 1000000000000,
+      "maximum": 9999999999999
+    },
+    "avg_speed": {
+      "type": "number",
+      "description": "Average speed across all events in the window (km/h)",
+      "minimum": 0,
+      "maximum": 200
+    },
+    "speed_stddev": {
+      "type": ["number", "null"],
+      "description": "Standard deviation of speed measurements (km/h)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "vehicle_count": {
+      "type": "integer",
+      "description": "Total number of vehicles in the aggregation window",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "occupancy_avg": {
+      "type": "number",
+      "description": "Average occupancy percentage across the window (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "occupancy_max": {
+      "type": ["number", "null"],
+      "description": "Maximum occupancy percentage in the window (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "congestion_level": {
+      "type": "string",
+      "description": "Calculated congestion level for the segment",
+      "enum": ["FREE_FLOW", "LIGHT", "MODERATE", "HEAVY", "SEVERE"]
+    },
+    "coordinates": {
+      "type": "object",
+      "description": "Representative coordinates for the segment",
+      "required": ["latitude", "longitude"],
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "description": "Latitude coordinate",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude coordinate", 
+          "minimum": -180,
+          "maximum": 180
+        }
+      },
+      "additionalProperties": false
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "Overall data quality score for the aggregate (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "event_count": {
+      "type": "integer",
+      "description": "Number of raw events aggregated",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "processing_metadata": {
+      "type": "object",
+      "description": "Metadata about the aggregation processing",
+      "properties": {
+        "processor_version": {
+          "type": "string",
+          "description": "Version of the aggregation processor"
+        },
+        "processing_time": {
+          "type": "integer",
+          "description": "Time when aggregation was completed (epoch milliseconds)"
+        },
+        "data_sources": {
+          "type": "array",
+          "description": "List of data sources included in the aggregate",
+          "items": {
+            "type": "string",
+            "enum": ["SENSOR", "CAMERA", "PROBE", "INCIDENT_REPORT", "WEATHER_STATION"]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "aggregate_id": "AGG_20250919_1200_SEG001",
+      "segment_id": "SEG_I405_N_001",
+      "window_start": 1726750800000,
+      "window_end": 1727097000000,
+      "avg_speed": 58.3,
+      "speed_stddev": 12.4,
+      "vehicle_count": 847,
+      "occupancy_avg": 22.5,
+      "occupancy_max": 45.8,
+      "congestion_level": "MODERATE",
+      "coordinates": {
+        "latitude": 34.0522,
+        "longitude": -118.2437
+      },
+      "quality_score": 0.92,
+      "event_count": 24,
+      "processing_metadata": {
+        "processor_version": "v1.2.3",
+        "processing_time": 1727097030000,
+        "data_sources": ["SENSOR", "CAMERA"]
+      }
+    }
+  ]
+}

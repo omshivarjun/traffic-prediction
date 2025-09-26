@@ -1,0 +1,84 @@
+{
+  "prediction_service": {
+    "name": "TrafficPredictionService",
+    "version": "1.0.0",
+    "description": "Batch prediction service for traffic forecasting"
+  },
+  "data_sources": {
+    "postgresql": {
+      "host": "localhost",
+      "port": 5433,
+      "database": "traffic_db",
+      "schema": "traffic",
+      "user": "postgres",
+      "password": "${POSTGRES_PASSWORD}",
+      "connection_pool_size": 10,
+      "connection_timeout": 30
+    },
+    "hdfs": {
+      "namenode_url": "hdfs://localhost:9001",
+      "model_base_path": "/traffic/models",
+      "feature_base_path": "/traffic/processed_features",
+      "output_base_path": "/traffic/predictions"
+    },
+    "kafka": {
+      "bootstrap_servers": "localhost:9094",
+      "input_topic": "processed-traffic-aggregates",
+      "output_topic": "traffic-predictions",
+      "consumer_group_id": "prediction-service"
+    }
+  },
+  "prediction_settings": {
+    "horizon_minutes": [15, 30, 60],
+    "default_horizon": 30,
+    "prediction_interval_confidence": 0.95,
+    "batch_size": 1000,
+    "max_retries": 3,
+    "retry_delay_seconds": 5
+  },
+  "model_settings": {
+    "default_model_name": "random_forest",
+    "model_version": "latest",
+    "model_update_check_interval_minutes": 60,
+    "fallback_models": ["linear_regression", "xgboost"],
+    "model_cache_ttl_minutes": 120
+  },
+  "scheduling": {
+    "batch_prediction_interval_minutes": 60,
+    "data_retention_days": 30,
+    "cleanup_interval_hours": 24,
+    "max_concurrent_jobs": 3
+  },
+  "monitoring": {
+    "enable_metrics": true,
+    "metrics_retention_days": 90,
+    "performance_threshold_seconds": 300,
+    "accuracy_threshold": 0.85,
+    "alert_email": "admin@trafficprediction.com"
+  },
+  "logging": {
+    "level": "INFO",
+    "log_file_path": "logs/prediction_service.log",
+    "max_file_size_mb": 100,
+    "backup_count": 5,
+    "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "spark": {
+    "app_name": "TrafficPredictionBatch",
+    "config": {
+      "spark.executor.memory": "4g",
+      "spark.executor.cores": "2",
+      "spark.sql.adaptive.enabled": "true",
+      "spark.sql.adaptive.coalescePartitions.enabled": "true",
+      "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
+    }
+  },
+  "retraining": {
+    "enabled": true,
+    "schedule_cron": "0 2 * * 0",
+    "min_training_samples": 10000,
+    "validation_threshold": 0.8,
+    "auto_deploy": false,
+    "notification_enabled": true
+  }
+}

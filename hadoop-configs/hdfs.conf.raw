@@ -1,0 +1,4 @@
+dfs_replication: 1
+dfs_webhdfs_enabled: true
+dfs_permissions_enabled: false
+dfs_datanode_data_dir: /hadoop/dfs/data

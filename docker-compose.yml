@@ -1,0 +1,321 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: zookeeper:3.7
+    container_name: zookeeper
+    restart: always
+    ports:
+      - 2185:2181  # Changed from 2182 to avoid conflict
+    volumes:
+      - zookeeper_data:/data
+      - zookeeper_datalog:/datalog
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    restart: always
+    ports:
+      - 9871:9870  # Changed from 9870 to avoid conflict
+      - 9001:9000  # Changed from 9000 to avoid conflict
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=traffic-prediction
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9870/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    restart: always
+    depends_on:
+      namenode:
+        condition: service_healthy
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 9865:9864  # Changed from 9864 to avoid conflict
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    restart: always
+    depends_on:
+      - namenode
+      - datanode
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 8089:8088  # Changed from 8088 to avoid conflict
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    restart: always
+    depends_on:
+      - namenode
+      - datanode
+      - resourcemanager
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 8043:8042  # Changed from 8042 to avoid conflict
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    restart: always
+    depends_on:
+      - namenode
+      - datanode
+      - resourcemanager
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 8189:8188  # Changed from 8188 to avoid conflict
+
+  hive-server:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-server
+    env_file:
+      - ./hadoop.env
+    environment:
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore/metastore
+      - SERVICE_PRECONDITION=hive-metastore:9083 namenode:9870 datanode:9864 resourcemanager:8088
+    ports:
+      - 10000:10000
+      - 10002:10002
+    depends_on:
+      - hive-metastore
+      - namenode
+      - datanode
+      - resourcemanager
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-metastore
+    env_file:
+      - ./hadoop.env
+    command: /opt/hive/bin/hive --service metastore
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870 datanode:9864 hive-metastore-postgresql:5432
+    ports:
+      - 9083:9083
+    depends_on:
+      - hive-metastore-postgresql
+      - namenode
+      - datanode
+
+  hive-metastore-postgresql:
+    image: bde2020/hive-metastore-postgresql:2.3.0
+    container_name: hive-metastore-postgresql
+    volumes:
+      - hive_metastore_postgresql:/var/lib/postgresql/data
+
+  kafka-broker1:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka-broker1
+    hostname: kafka-broker1
+    ports:
+      - 9094:9092  # Changed from 9093 to avoid conflict
+      - 29094:29092  # Changed from 29093 to avoid conflict
+    env_file:
+      - ./kafka-config.env
+    depends_on:
+      zookeeper:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.3.0
+    container_name: schema-registry
+    hostname: schema-registry
+    ports:
+      - 8082:8081  # Changed from 8081 to avoid conflict
+    env_file:
+      - ./schemas/schema-registry-config.env
+    depends_on:
+      kafka-broker1:
+        condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-broker1:9092
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.3.0
+    container_name: kafka-connect
+    hostname: kafka-connect
+    ports:
+      - 8084:8083  # Changed from 8083 to avoid conflict
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka-broker1:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components,/connectors
+    volumes:
+      - kafka_connect_data:/connectors
+    depends_on:
+      - kafka-broker1
+      - schema-registry
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - 8085:8080  # Changed from 8080 to avoid conflict
+    environment:
+      KAFKA_CLUSTERS_0_NAME: traffic-prediction
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker1:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: kafka-connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+    depends_on:
+      - kafka-broker1
+      - schema-registry
+      - kafka-connect
+
+  # FastAPI backend (containerized)
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: fastapi
+    restart: always
+    depends_on:
+      - postgres
+      - kafka-broker1
+      - schema-registry
+      - namenode
+    environment:
+      ENVIRONMENT: development
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: traffic_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: casa1234
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker1:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      HDFS_NAMENODE_HOST: namenode
+      HDFS_NAMENODE_PORT: 9000
+      HDFS_WEBHDFS_PORT: 9870
+    ports:
+      - 8000:8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Apache Spark Master for ML Training
+  spark-master:
+    image: bitnami/spark:3.5.0
+    container_name: spark-master
+    hostname: spark-master
+    restart: always
+    ports:
+      - 8086:8080  # Spark Web UI
+      - 7077:7077  # Spark Master Port
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_MASTER_OPTS=-Dspark.deploy.defaultCores=2
+    volumes:
+      - ./src:/opt/spark-apps
+      - ./data:/opt/spark-data
+      - ./config:/opt/spark-conf
+
+  # Apache Spark Worker
+  spark-worker:
+    image: bitnami/spark:3.5.0
+    container_name: spark-worker
+    hostname: spark-worker
+    restart: always
+    ports:
+      - 8087:8081  # Spark Worker Web UI
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./src:/opt/spark-apps
+      - ./data:/opt/spark-data
+      - ./config:/opt/spark-conf
+    depends_on:
+      - spark-master
+
+  # PostgreSQL 14 for Traffic Prediction Database (Task 5)
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres-traffic
+    hostname: postgres
+    restart: always
+    ports:
+      - 5433:5432  # Changed from 5432 to avoid conflict
+    environment:
+      POSTGRES_DB: traffic_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: casa1234
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d traffic_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+  hadoop_historyserver:
+  hive_metastore_postgresql:
+  zookeeper_data:
+  zookeeper_datalog:
+  kafka_connect_data:
+  postgres_data:

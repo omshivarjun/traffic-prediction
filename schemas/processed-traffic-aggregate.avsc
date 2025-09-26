@@ -1,0 +1,93 @@
+{
+  "type": "record",
+  "name": "ProcessedTrafficAggregate",
+  "namespace": "com.trafficprediction.schemas",
+  "doc": "Schema for processed traffic aggregates over time windows",
+  "fields": [
+    {
+      "name": "segment_id",
+      "type": "string",
+      "doc": "Identifier for the road segment"
+    },
+    {
+      "name": "window_start",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Start time of the aggregation window (epoch milliseconds)"
+    },
+    {
+      "name": "window_end",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "End time of the aggregation window (epoch milliseconds)"
+    },
+    {
+      "name": "average_speed",
+      "type": ["null", "float"],
+      "default": null,
+      "doc": "Average speed of vehicles in km/h during the window"
+    },
+    {
+      "name": "average_volume",
+      "type": ["null", "float"],
+      "default": null,
+      "doc": "Average number of vehicles during the window"
+    },
+    {
+      "name": "average_occupancy",
+      "type": ["null", "float"],
+      "default": null,
+      "doc": "Average occupancy percentage during the window (0-100)"
+    },
+    {
+      "name": "congestion_level",
+      "type": {
+        "type": "enum",
+        "name": "CongestionLevel",
+        "symbols": ["FREE_FLOW", "LIGHT", "MODERATE", "HEAVY", "SEVERE", "UNKNOWN"]
+      },
+      "doc": "Calculated congestion level based on speed, volume, and occupancy"
+    },
+    {
+      "name": "event_count",
+      "type": "int",
+      "doc": "Number of raw events aggregated in this window"
+    },
+    {
+      "name": "processing_timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Time when this aggregate was processed (epoch milliseconds)"
+    },
+    {
+      "name": "coordinates",
+      "type": {
+        "type": "record",
+        "name": "Coordinates",
+        "fields": [
+          {"name": "latitude", "type": "double"},
+          {"name": "longitude", "type": "double"}
+        ]
+      },
+      "doc": "Geographic coordinates of the segment"
+    },
+    {
+      "name": "active_incidents",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "default": [],
+      "doc": "List of active incident IDs affecting this segment during the window"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata about the aggregate"
+    }
+  ]
+}

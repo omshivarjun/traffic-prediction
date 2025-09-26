@@ -1,0 +1,29 @@
+{
+  "app_name": "TrafficPredictionStreaming",
+  "master": "local[*]",
+  "batch_interval_seconds": 10,
+  
+  "kafka_bootstrap_servers": "localhost:9094",
+  "input_topic": "traffic-raw",
+  "output_topic_aggregates": "traffic-aggregates",
+  "output_topic_alerts": "traffic-alerts",
+  "kafka_starting_offsets": "latest",
+  
+  "window_duration": "5 minutes",
+  "slide_duration": "30 seconds",
+  "congestion_speed_threshold": 40.0,
+  "watermark_delay": "1 minute",
+  
+  "hdfs_output_path": "hdfs://localhost:9001/traffic/streaming",
+  "checkpoint_location": "hdfs://localhost:9001/traffic/checkpoints",
+  "postgresql_url": "jdbc:postgresql://localhost:5433/traffic_prediction",
+  "postgresql_table": "traffic_aggregates",
+  "postgresql_user": "postgres",
+  "postgresql_password": "casa1234",
+  
+  "max_offsets_per_trigger": 10000,
+  "trigger_processing_time": "10 seconds",
+  "output_mode": "append",
+  
+  "log_level": "INFO"
+}

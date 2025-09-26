@@ -1,0 +1,40 @@
+{
+  "app_name": "TrafficHDFSStoragePipeline",
+  "master": "local[*]",
+  
+  "hdfs_base_path": "hdfs://localhost:9000/traffic",
+  "hdfs_raw_path": "hdfs://localhost:9000/traffic/raw",
+  "hdfs_processed_path": "hdfs://localhost:9000/traffic/processed",
+  "hdfs_aggregated_path": "hdfs://localhost:9000/traffic/aggregated",
+  "hdfs_validated_path": "hdfs://localhost:9000/traffic/validated",
+  
+  "compression_codec": "snappy",
+  "parquet_block_size": "128MB",
+  "parquet_page_size": "1MB",
+  "enable_dictionary": true,
+  "enable_bloom_filter": true,
+  
+  "partition_columns": ["year", "month", "day", "hour"],
+  "partition_mode": "dynamic",
+  "max_records_per_file": 1000000,
+  
+  "retention_days": 30,
+  "cleanup_enabled": true,
+  "backup_before_cleanup": true,
+  
+  "data_quality_threshold": 0.95,
+  "duplicate_threshold": 0.01,
+  "completeness_threshold": 0.98,
+  
+  "postgresql_url": "jdbc:postgresql://localhost:5432/traffic_prediction",
+  "postgresql_table": "traffic_daily_aggregates",
+  "postgresql_user": "postgres",
+  "postgresql_password": "casa1234",
+  
+  "executor_memory": "2g",
+  "driver_memory": "1g",
+  "executor_cores": 2,
+  "max_executors": 4,
+  
+  "log_level": "INFO"
+}

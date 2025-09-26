@@ -1,0 +1,67 @@
+{
+  "test_duration_minutes": 10,
+  "test_data_points": 5000,
+  "performance_thresholds": {
+    "kafka_throughput_msgs_per_sec": 10000,
+    "hdfs_write_speed_mb_per_sec": 50,
+    "spark_latency_seconds": 30,
+    "api_response_ms": 500,
+    "prediction_accuracy_percent": 75
+  },
+  "test_scenarios": [
+    "normal_operation",
+    "high_load",
+    "component_failure",
+    "recovery_testing"
+  ],
+  "service_endpoints": {
+    "api_base_url": "http://localhost:8000",
+    "frontend_url": "http://localhost:3000",
+    "websocket_url": "ws://localhost:8000/ws/real-time",
+    "kafka_bootstrap_servers": ["localhost:9092"],
+    "hdfs_namenode": "localhost:9000",
+    "spark_ui": "http://localhost:4040"
+  },
+  "database_config": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "traffic_prediction",
+    "user": "postgres",
+    "password": "casa1234"
+  },
+  "kafka_topics": {
+    "input": "traffic-events",
+    "processed": "processed-traffic-aggregates",
+    "predictions": "traffic-predictions",
+    "alerts": "traffic-alerts"
+  },
+  "test_data_config": {
+    "segment_count": 100,
+    "events_per_segment": 1000,
+    "time_range_hours": 24,
+    "speed_range": [20, 80],
+    "volume_range": [50, 500],
+    "quality_score_min": 0.7
+  },
+  "timeout_config": {
+    "health_check_timeout_seconds": 30,
+    "api_request_timeout_seconds": 60,
+    "websocket_connection_timeout_seconds": 10,
+    "data_processing_timeout_seconds": 300,
+    "recovery_test_timeout_seconds": 120
+  },
+  "load_testing": {
+    "concurrent_users": 50,
+    "requests_per_second": 100,
+    "duration_minutes": 5
+  },
+  "monitoring": {
+    "metrics_collection_interval_seconds": 10,
+    "alert_thresholds": {
+      "cpu_usage_percent": 80,
+      "memory_usage_percent": 85,
+      "disk_usage_percent": 90,
+      "response_time_ms": 1000
+    }
+  }
+}

@@ -1,0 +1,98 @@
+import { KafkaStreams } from 'kafka-streams';
+import { TrafficEventProcessor } from '../TrafficEventProcessor';
+
+// Mock KafkaStreams
+jest.mock('kafka-streams', () => {
+  const mockStream = {
+    mapJSONConvenience: jest.fn().mockReturnThis(),
+    filter: jest.fn().mockReturnThis(),
+    map: jest.fn().mockReturnThis(),
+    groupByKey: jest.fn().mockReturnThis(),
+    window: jest.fn().mockReturnThis(),
+    reduce: jest.fn().mockReturnThis(),
+    to: jest.fn().mockReturnThis(),
+    start: jest.fn().mockResolvedValue(undefined),
+    close: jest.fn().mockResolvedValue(undefined),
+    setName: jest.fn().mockReturnThis()
+  };
+  
+  return {
+    KafkaStreams: jest.fn().mockImplementation(() => ({
+      getKStream: jest.fn().mockReturnValue(mockStream),
+      closeAll: jest.fn(),
+      windows: {
+        tumbling: jest.fn()
+      }
+    })),
+    windows: {
+      tumbling: jest.fn()
+    }
+  };
+});
+
+describe('TrafficEventProcessor', () => {
+  let kafkaStreams: KafkaStreams;
+  let config: Record<string, string>;
+  let processor: TrafficEventProcessor;
+  
+  beforeEach(() => {
+    // Reset mocks
+    jest.clearAllMocks();
+    
+    // Setup test configuration
+    config = {
+      'application.id': 'test-app',
+      'bootstrap.servers': 'localhost:9092',
+      'topic.input.traffic-events': 'raw-traffic-events',
+      'topic.output.processed-aggregates': 'processed-traffic-aggregates',
+      'window.size.minutes': '5',
+      'window.advance.seconds': '60'
+    };
+    
+    // Create KafkaStreams instance
+    kafkaStreams = new KafkaStreams({});
+    
+    // Create processor
+    processor = new TrafficEventProcessor(kafkaStreams, config);
+  });
+  
+  test('should create consumer and producer streams', async () => {
+    // Call start to trigger buildTopology
+    await processor.start();
+    
+    // Verify streams were created
+    expect(kafkaStreams.getKStream).toHaveBeenCalledTimes(2);
+    expect(kafkaStreams.getKStream).toHaveBeenCalledWith('raw-traffic-events');
+    expect(kafkaStreams.getKStream).toHaveBeenCalledWith(null);
+  });
+  
+  test('should configure window size from config', async () => {
+    // Call start to trigger buildTopology
+    await processor.start();
+    
+    // Get the mock stream
+    const mockStream = kafkaStreams.getKStream('raw-traffic-events');
+    
+    // Verify window configuration
+    expect(mockStream.window).toHaveBeenCalled();
+    // The window function should be called with a tumbling window of 5 minutes (300000 ms)
+    expect(KafkaStreams.windows.tumbling).toHaveBeenCalledWith(300000);
+  });
+  
+  test('should start and stop streams', async () => {
+    // Start processor
+    await processor.start();
+    
+    // Get the mock streams
+    const mockStream = kafkaStreams.getKStream('raw-traffic-events');
+    
+    // Verify streams were started
+    expect(mockStream.start).toHaveBeenCalled();
+    
+    // Stop processor
+    await processor.stop();
+    
+    // Verify streams were closed
+    expect(mockStream.close).toHaveBeenCalled();
+  });
+});

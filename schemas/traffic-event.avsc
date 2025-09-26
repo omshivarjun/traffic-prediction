@@ -1,0 +1,77 @@
+{
+  "type": "record",
+  "name": "TrafficEvent",
+  "namespace": "com.trafficprediction.schemas",
+  "doc": "Schema for raw traffic events from sensors and other sources",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for the traffic event"
+    },
+    {
+      "name": "segment_id",
+      "type": "string",
+      "doc": "Identifier for the road segment where the event occurred"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Time when the event was recorded (epoch milliseconds)"
+    },
+    {
+      "name": "speed",
+      "type": ["null", "float"],
+      "default": null,
+      "doc": "Average speed of vehicles in km/h"
+    },
+    {
+      "name": "volume",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Number of vehicles detected in the time window"
+    },
+    {
+      "name": "occupancy",
+      "type": ["null", "float"],
+      "default": null,
+      "doc": "Percentage of time the sensor detected a vehicle (0-100)"
+    },
+    {
+      "name": "coordinates",
+      "type": {
+        "type": "record",
+        "name": "Coordinates",
+        "fields": [
+          {"name": "latitude", "type": "double"},
+          {"name": "longitude", "type": "double"}
+        ]
+      },
+      "doc": "Geographic coordinates of the event"
+    },
+    {
+      "name": "source",
+      "type": {
+        "type": "enum",
+        "name": "SourceType",
+        "symbols": ["SENSOR", "CAMERA", "PROBE", "INCIDENT_REPORT", "WEATHER_STATION"]
+      },
+      "doc": "Source of the traffic event data"
+    },
+    {
+      "name": "quality_score",
+      "type": "float",
+      "doc": "Data quality score between 0 and 1"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata about the event"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "traffic-hdfs-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.hdfs.HdfsSinkConnector",
+    "tasks.max": "3",
+    "topics": "processed-traffic-aggregates,enriched-traffic-aggregates,traffic-predictions,traffic-alerts",
+    "hdfs.url": "hdfs://namenode:8020",
+    "hadoop.conf.dir": "/etc/hadoop/conf",
+    "hadoop.home": "/opt/hadoop",
+    "flush.size": "1000",
+    "rotate.interval.ms": "60000",
+    "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
+    "path.format": "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH",
+    "locale": "en-US",
+    "timezone": "UTC",
+    "partition.duration.ms": "3600000",
+    "storage.class": "io.confluent.connect.hdfs.storage.HdfsStorage",
+    "format.class": "io.confluent.connect.hdfs.avro.AvroFormat",
+    "schema.compatibility": "FULL",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8081",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "errors.tolerance": "all",
+    "errors.log.enable": true,
+    "errors.log.include.messages": true,
+    "hive.integration": true,
+    "hive.metastore.uris": "thrift://hive-metastore:9083",
+    "hive.database": "traffic_data",
+    "confluent.topic.bootstrap.servers": "kafka-broker1:9092",
+    "confluent.topic.replication.factor": 1
+  }
+}

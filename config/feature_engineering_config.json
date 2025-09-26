@@ -1,0 +1,155 @@
+{
+  "feature_engineering": {
+    "temporal_features": {
+      "enabled": true,
+      "lag_periods": [1, 2, 3, 4, 5, 6],
+      "rolling_windows": [5, 15, 30, 60],
+      "cyclical_encoding": {
+        "hour": true,
+        "day_of_week": true,
+        "month": true
+      },
+      "trend_analysis": {
+        "enabled": true,
+        "macd_periods": [12, 26, 9],
+        "rsi_period": 14
+      },
+      "statistical_features": {
+        "enabled": true,
+        "z_score_window": 60,
+        "percentile_ranks": [25, 50, 75, 90, 95]
+      }
+    },
+    "spatial_features": {
+      "enabled": true,
+      "adjacency_threshold_meters": 500,
+      "neighbor_analysis": {
+        "max_neighbors": 5,
+        "distance_weights": true,
+        "directional_flow": true
+      },
+      "network_topology": {
+        "centrality_measures": ["betweenness", "closeness", "degree"],
+        "clustering_coefficient": true,
+        "shortest_paths": true
+      },
+      "spatial_correlations": {
+        "correlation_window": 60,
+        "min_correlation_threshold": 0.3,
+        "max_distance_km": 2.0
+      }
+    },
+    "feature_pipeline": {
+      "data_quality": {
+        "missing_value_threshold": 0.1,
+        "outlier_detection": {
+          "method": "iqr",
+          "iqr_multiplier": 1.5,
+          "zscore_threshold": 3.0
+        },
+        "data_drift_detection": true
+      },
+      "preprocessing": {
+        "handle_missing": "interpolate",
+        "outlier_treatment": "cap",
+        "data_validation": true
+      },
+      "feature_scaling": {
+        "method": "standard",
+        "per_feature": true,
+        "robust_scaling_quantile_range": [25.0, 75.0]
+      },
+      "feature_selection": {
+        "enabled": false,
+        "methods": ["correlation", "mutual_info", "recursive"],
+        "correlation_threshold": 0.95,
+        "importance_threshold": 0.01
+      }
+    },
+    "feature_store": {
+      "storage": {
+        "base_path": "hdfs://localhost:9000/traffic/features",
+        "format": "parquet",
+        "compression": "snappy",
+        "partitioning": ["year", "month", "day"]
+      },
+      "versioning": {
+        "enabled": true,
+        "max_versions": 10,
+        "cleanup_after_days": 90,
+        "schema_evolution": true
+      },
+      "metadata": {
+        "track_lineage": true,
+        "quality_metrics": true,
+        "usage_statistics": true
+      },
+      "mlflow_integration": {
+        "enabled": false,
+        "tracking_uri": "file:///tmp/mlflow",
+        "experiment_name": "traffic-prediction-features"
+      }
+    },
+    "spark_optimization": {
+      "sql": {
+        "adaptive.enabled": true,
+        "adaptive.coalescePartitions.enabled": true,
+        "adaptive.skewJoin.enabled": true,
+        "cbo.enabled": true
+      },
+      "execution": {
+        "dynamicAllocation.enabled": true,
+        "dynamicAllocation.minExecutors": 1,
+        "dynamicAllocation.maxExecutors": 10,
+        "cores.max": 4
+      },
+      "memory": {
+        "executor.memory": "2g",
+        "executor.memoryFraction": 0.8,
+        "serializer": "org.apache.spark.serializer.KryoSerializer"
+      },
+      "io": {
+        "compression.codec": "snappy",
+        "serialization.objectStreamReset": 100,
+        "sql.files.maxPartitionBytes": "128MB"
+      },
+      "feature_specific": {
+        "broadcast_threshold": "10MB",
+        "window_partition_size": 1000000,
+        "cache_intermediate_results": true,
+        "checkpoint_interval": 10
+      }
+    },
+    "monitoring": {
+      "enabled": true,
+      "metrics": {
+        "feature_drift": true,
+        "data_quality": true,
+        "pipeline_performance": true
+      },
+      "alerts": {
+        "quality_degradation_threshold": 0.8,
+        "drift_detection_threshold": 0.05,
+        "pipeline_failure_notification": true
+      },
+      "logging": {
+        "level": "INFO",
+        "file_rotation": true,
+        "max_file_size": "100MB",
+        "retention_days": 30
+      }
+    }
+  },
+  "hdfs_integration": {
+    "namenode_url": "hdfs://localhost:9000",
+    "data_paths": {
+      "raw_traffic": "/traffic/raw",
+      "processed_features": "/traffic/features",
+      "models": "/traffic/models",
+      "metadata": "/traffic/metadata"
+    },
+    "replication_factor": 2,
+    "block_size": "128MB",
+    "permissions": "755"
+  }
+}

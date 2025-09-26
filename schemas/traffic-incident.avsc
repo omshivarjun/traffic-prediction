@@ -1,0 +1,87 @@
+{
+  "type": "record",
+  "name": "TrafficIncident",
+  "namespace": "com.trafficprediction.schemas",
+  "doc": "Schema for traffic incidents such as accidents, road closures, etc.",
+  "fields": [
+    {
+      "name": "incident_id",
+      "type": "string",
+      "doc": "Unique identifier for the incident"
+    },
+    {
+      "name": "segment_id",
+      "type": "string",
+      "doc": "Identifier for the road segment where the incident occurred"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Time when the incident was recorded (epoch milliseconds)"
+    },
+    {
+      "name": "incident_type",
+      "type": {
+        "type": "enum",
+        "name": "IncidentType",
+        "symbols": ["ACCIDENT", "CONSTRUCTION", "ROAD_CLOSURE", "HAZARD", "SPECIAL_EVENT", "WEATHER_CONDITION"]
+      },
+      "doc": "Type of traffic incident"
+    },
+    {
+      "name": "severity",
+      "type": {
+        "type": "enum",
+        "name": "SeverityLevel",
+        "symbols": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+      },
+      "doc": "Severity level of the incident"
+    },
+    {
+      "name": "start_time",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Start time of the incident (epoch milliseconds)"
+    },
+    {
+      "name": "end_time",
+      "type": ["null", "long"],
+      "logicalType": "timestamp-millis",
+      "default": null,
+      "doc": "Expected or actual end time of the incident (epoch milliseconds)"
+    },
+    {
+      "name": "coordinates",
+      "type": {
+        "type": "record",
+        "name": "Coordinates",
+        "fields": [
+          {"name": "latitude", "type": "double"},
+          {"name": "longitude", "type": "double"}
+        ]
+      },
+      "doc": "Geographic coordinates of the incident"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Human-readable description of the incident"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "doc": "Source of the incident report"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata about the incident"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "hdfs_storage": {
+  "hdfs_base_path": "hdfs://localhost:9001/traffic",
+  "raw_data_path": "hdfs://localhost:9001/traffic/raw",
+  "processed_data_path": "hdfs://localhost:9001/traffic/processed",
+  "aggregated_data_path": "hdfs://localhost:9001/traffic/aggregated",
+  "streaming_data_path": "hdfs://localhost:9001/traffic/streaming",
+  "validation_data_path": "hdfs://localhost:9001/traffic/validated",
+  "backup_path": "hdfs://localhost:9001/traffic/backup",
+  "temp_path": "hdfs://localhost:9001/traffic/temp",
+  "checkpoint_path": "hdfs://localhost:9001/traffic/checkpoints"
+  },
+  
+  "parquet_settings": {
+    "compression_codec": "snappy",
+    "enable_dictionary": true,
+    "enable_bloom_filter": true,
+    "block_size": 134217728,
+    "page_size": 1048576,
+    "write_legacy_format": false,
+    "merge_schema": true
+  },
+  
+  "partitioning": {
+    "partition_columns": ["year", "month", "day", "hour"],
+    "partition_overwrite_mode": "dynamic",
+    "max_records_per_file": 1000000,
+    "coalesce_partitions": true,
+    "adaptive_query_execution": true
+  },
+  
+  "data_retention": {
+    "retention_days": 30,
+    "cleanup_schedule": "daily",
+    "backup_before_cleanup": true,
+    "cleanup_empty_directories": true,
+    "archive_old_data": true,
+    "archive_retention_days": 365
+  },
+  
+  "quality_validation": {
+    "enable_validation": true,
+    "validation_on_write": true,
+    "validation_sampling": 0.1,
+    "quality_threshold": 85.0,
+    "stop_on_poor_quality": false,
+    "validation_rules_path": "config/validation_rules.json"
+  },
+  
+  "spark_configuration": {
+    "app_name": "TrafficPredictionHDFS",
+    "master": "local[*]",
+    "executor_memory": "4g",
+    "executor_cores": 2,
+    "num_executors": 4,
+    "driver_memory": "2g",
+    "max_result_size": "2g",
+    "serializer": "org.apache.spark.serializer.KryoSerializer",
+    "adaptive_enabled": true,
+    "adaptive_coalesce_partitions": true,
+    "sql_adaptive_skew_join": true
+  },
+  
+  "batch_processing": {
+    "job_name": "daily_traffic_aggregation",
+    "schedule_hour": 2,
+    "max_parallel_jobs": 4,
+    "processing_timeout": 3600,
+    "segment_batch_size": 100,
+    "aggregation_levels": ["hourly", "daily", "weekly", "monthly"],
+    "enable_incremental_processing": true,
+    "checkpoint_interval": "10 minutes"
+  },
+  
+  "postgresql": {
+  "host": "localhost",
+  "port": 5433,
+    "database": "traffic_prediction",
+    "user": "postgres",
+    "password": "casa1234",
+    "connection_pool_size": 10,
+    "connection_timeout": 30,
+    "enable_ssl": false,
+    "schema": "public"
+  },
+  
+  "monitoring": {
+    "enable_metrics": true,
+    "metrics_interval": 300,
+    "log_level": "INFO",
+    "enable_performance_logging": true,
+    "enable_quality_alerts": true,
+    "alert_email": null,
+    "dashboard_enabled": false
+  },
+  
+  "file_management": {
+    "file_prefix": "traffic_data",
+    "timestamp_format": "%Y%m%d_%H%M%S",
+    "compression_suffix": ".parquet.snappy",
+    "temp_file_cleanup": true,
+    "temp_file_retention_hours": 24,
+    "max_file_size_mb": 512,
+    "replication_factor": 3
+  },
+  
+  "schema_evolution": {
+    "enable_schema_evolution": true,
+    "merge_schema_on_read": true,
+    "handle_missing_columns": "fill_null",
+    "handle_extra_columns": "ignore",
+    "schema_registry_url": null,
+    "validate_schema_compatibility": true
+  },
+  
+  "performance_tuning": {
+    "cache_intermediate_results": true,
+    "broadcast_join_threshold": 10485760,
+    "partition_discovery_enabled": true,
+    "vectorized_reader": true,
+    "predicate_pushdown": true,
+    "column_pruning": true,
+    "optimize_skewed_joins": true
+  }
+}

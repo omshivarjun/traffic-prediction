@@ -1,0 +1,65 @@
+{
+  "model_name": "gradient_boosting",
+  "timestamp": "20250919_215740",
+  "metrics": {
+    "mse": 0.002045434204818099,
+    "mae": 0.016994491171647606,
+    "rmse": 0.04522647681190852,
+    "r2": 0.9999922815321378,
+    "cv_mean": 0.9999411740348624,
+    "cv_std": 0.00011208814392053389
+  },
+  "config": {
+    "hdfs_input_path": "hdfs://localhost:9000/traffic-data/streaming/metr-la",
+    "hdfs_models_path": "hdfs://localhost:9000/traffic-data/models",
+    "local_models_path": "models",
+    "test_size": 0.2,
+    "validation_size": 0.1,
+    "random_state": 42,
+    "models": [
+      "random_forest",
+      "gradient_boosting"
+    ],
+    "cross_validation_folds": 5,
+    "feature_columns": [
+      "avg_speed_kmh",
+      "avg_volume_vph",
+      "total_volume",
+      "congestion_ratio",
+      "speed_variability",
+      "avg_traffic_efficiency",
+      "hour_of_day",
+      "day_of_week",
+      "is_weekend",
+      "is_rush_hour",
+      "avg_latitude",
+      "avg_longitude",
+      "total_count",
+      "avg_quality_score"
+    ],
+    "target_column": "avg_speed_mph",
+    "time_window_hours": 24,
+    "prediction_horizon_minutes": 30,
+    "enable_hyperparameter_tuning": true,
+    "max_evaluations": 50,
+    "spark_executor_memory": "2g",
+    "spark_executor_cores": 2
+  },
+  "feature_columns": [
+    "avg_speed_kmh",
+    "avg_volume_vph",
+    "total_volume",
+    "congestion_ratio",
+    "speed_variability",
+    "avg_traffic_efficiency",
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "is_rush_hour",
+    "avg_latitude",
+    "avg_longitude",
+    "total_count",
+    "avg_quality_score"
+  ],
+  "target_column": "avg_speed_mph"
+}
