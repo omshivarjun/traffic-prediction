@@ -20,12 +20,37 @@ export async function GET(request: NextRequest) {
   // Start consumer if not already running
   if (!consumer.isRunning()) {
     try {
+      console.log('🔌 Starting prediction consumer for SSE stream...');
       await consumer.start();
       console.log('✅ Prediction consumer started for SSE stream');
     } catch (error) {
       console.error('❌ Failed to start prediction consumer:', error);
-      return new Response('Failed to connect to prediction service', { 
-        status: 500 
+      
+      // Return error in SSE format instead of HTTP 500
+      const stream = new ReadableStream({
+        start(controller) {
+          const errorMessage = `data: ${JSON.stringify({ 
+            type: 'error', 
+            message: 'Failed to connect to prediction service. Retrying...',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: Date.now()
+          })}\n\n`;
+          controller.enqueue(encoder.encode(errorMessage));
+          
+          // Close after 1 second
+          setTimeout(() => {
+            controller.close();
+          }, 1000);
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        },
       });
     }
   }

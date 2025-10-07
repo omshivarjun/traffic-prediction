@@ -28,8 +28,9 @@ export interface PredictionStats {
 }
 
 interface SSEMessage {
-  type: 'connected' | 'initial' | 'prediction' | 'stats';
+  type: 'connected' | 'initial' | 'prediction' | 'stats' | 'error';
   message?: string;
+  error?: string;
   predictions?: TrafficPrediction[];
   data?: TrafficPrediction | PredictionStats;
   count?: number;
@@ -138,6 +139,25 @@ export function usePredictions(options: UsePredictionsOptions = {}) {
               // Update stats
               if (message.data) {
                 setStats(message.data as PredictionStats);
+              }
+              break;
+
+            case 'error':
+              // Handle error from server
+              console.error('🔴 Server error:', message.message);
+              setError(message.message || 'Server connection error');
+              setIsConnected(false);
+              setIsConnecting(false);
+              
+              // Attempt reconnection after delay
+              if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+                reconnectAttemptsRef.current++;
+                console.log(
+                  `🔄 Reconnecting after server error... (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`
+                );
+                reconnectTimeoutRef.current = setTimeout(() => {
+                  connect();
+                }, RECONNECT_DELAY);
               }
               break;
 
