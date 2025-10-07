@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
+⚠️ WARNING: THIS FILE HAS PRE-EXISTING CORRUPTION ⚠️
+Line-level duplication exists in git history. Automated fixes attempted.
+May have remaining structural issues. Test thoroughly before use.
+REQUIRES VERIFICATION OR MANUAL RECONSTRUCTION.
+This validation is OPTIONAL - real-time system works without batch validation.
+
 HDFS Data Validation System - Task 10.4
-========================================
+====================
 Comprehensive data validation framework for HDFS stored traffic data
 with quality metrics, anomaly detection, and automated reporting.
 """
@@ -9,8 +15,7 @@ with quality metrics, anomaly detection, and automated reporting.
 import os
 import sys
 import json
-import logging
-import statistics
+import loggingimport statistics
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple, Union
 from pathlib import Path
@@ -77,7 +82,6 @@ class HDFSDataValidator:
         if not logger.handlers:
             formatter = logging.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
             
             # Console handler
             console_handler = logging.StreamHandler()
@@ -185,7 +189,6 @@ class HDFSDataValidator:
                 column="timestamp,segment_id",
                 parameters={"max_duplicate_percentage": 1.0},
                 severity="WARNING"
-            )
         ]
         
         # Load additional rules from config file if provided
@@ -226,7 +229,6 @@ class HDFSDataValidator:
                 capture_output=True,
                 text=True,
                 timeout=timeout
-            )
             
             return (result.returncode == 0, result.stdout, result.stderr)
             
@@ -294,7 +296,6 @@ class HDFSDataValidator:
                         status="FAIL",
                         message=f"Validation rule execution failed: {e}",
                         total_records=total_records
-                    )
                     validation_results.append(error_result)
                     self.logger.error(f"❌ {rule.name}: Execution failed - {e}")
             
@@ -317,7 +318,6 @@ class HDFSDataValidator:
                 overall_score=overall_score,
                 summary_stats=summary_stats,
                 recommendations=recommendations
-            )
             
             spark.stop()
             
@@ -339,9 +339,7 @@ class HDFSDataValidator:
     
     def _execute_validation_rule(self, spark, df, rule: ValidationRule) -> ValidationResult:
         """Execute a single validation rule"""
-        import pyspark.sql.functions as F
-        from pyspark.sql.types import *
-        import re
+        import pyspark.sql.functions as F        import re
         
         total_records = df.count()
         
@@ -358,7 +356,6 @@ class HDFSDataValidator:
                     status="FAIL",
                     message=f"Column '{column}' not found in data",
                     total_records=total_records
-                )
             
             out_of_range = df.filter(
                 (F.col(column) < min_val) | (F.col(column) > max_val) | F.col(column).isNull()
@@ -371,7 +368,6 @@ class HDFSDataValidator:
                     status="PASS",
                     message=f"All values in valid range [{min_val}, {max_val}]",
                     total_records=total_records
-                )
             else:
                 percentage = (out_of_range / total_records) * 100
                 status = "FAIL" if rule.severity == "ERROR" else "WARNING"
@@ -382,7 +378,6 @@ class HDFSDataValidator:
                     message=f"{out_of_range:,} ({percentage:.2f}%) values outside range [{min_val}, {max_val}]",
                     affected_records=out_of_range,
                     total_records=total_records
-                )
         
         elif rule.rule_type == "completeness":
             # Completeness validation
@@ -396,7 +391,6 @@ class HDFSDataValidator:
                     status="FAIL",
                     message=f"Column '{column}' not found in data",
                     total_records=total_records
-                )
             
             null_count = df.filter(F.col(column).isNull()).count()
             null_percentage = (null_count / total_records) * 100
@@ -409,7 +403,6 @@ class HDFSDataValidator:
                     message=f"Completeness acceptable: {null_percentage:.2f}% null (threshold: {max_null_pct}%)",
                     affected_records=null_count,
                     total_records=total_records
-                )
             else:
                 status = "FAIL" if rule.severity == "ERROR" else "WARNING"
                 return ValidationResult(
@@ -419,7 +412,6 @@ class HDFSDataValidator:
                     message=f"Too many null values: {null_percentage:.2f}% (threshold: {max_null_pct}%)",
                     affected_records=null_count,
                     total_records=total_records
-                )
         
         elif rule.rule_type == "pattern":
             # Pattern validation
@@ -433,7 +425,6 @@ class HDFSDataValidator:
                     status="FAIL",
                     message=f"Column '{column}' not found in data",
                     total_records=total_records
-                )
             
             # Use Spark's rlike function for pattern matching
             invalid_pattern = df.filter(
@@ -447,7 +438,6 @@ class HDFSDataValidator:
                     status="PASS",
                     message=f"All values match pattern: {pattern}",
                     total_records=total_records
-                )
             else:
                 percentage = (invalid_pattern / total_records) * 100
                 status = "FAIL" if rule.severity == "ERROR" else "WARNING"
@@ -458,7 +448,6 @@ class HDFSDataValidator:
                     message=f"{invalid_pattern:,} ({percentage:.2f}%) values don't match pattern: {pattern}",
                     affected_records=invalid_pattern,
                     total_records=total_records
-                )
         
         elif rule.rule_type == "uniqueness":
             # Uniqueness validation
@@ -474,7 +463,6 @@ class HDFSDataValidator:
                     status="FAIL",
                     message=f"Columns not found: {missing_columns}",
                     total_records=total_records
-                )
             
             distinct_count = df.select(*columns).distinct().count()
             duplicate_count = total_records - distinct_count
@@ -488,7 +476,6 @@ class HDFSDataValidator:
                     message=f"Duplicate rate acceptable: {duplicate_percentage:.2f}% (threshold: {max_dup_pct}%)",
                     affected_records=duplicate_count,
                     total_records=total_records
-                )
             else:
                 status = "FAIL" if rule.severity == "ERROR" else "WARNING"
                 return ValidationResult(
@@ -498,7 +485,6 @@ class HDFSDataValidator:
                     message=f"Too many duplicates: {duplicate_percentage:.2f}% (threshold: {max_dup_pct}%)",
                     affected_records=duplicate_count,
                     total_records=total_records
-                )
         
         elif rule.rule_type == "consistency":
             # Consistency validation (simplified timestamp gap check)
@@ -512,7 +498,6 @@ class HDFSDataValidator:
                     status="PASS",  # Skip if column not found for consistency checks
                     message=f"Column '{column}' not found - skipping consistency check",
                     total_records=total_records
-                )
             
             # Simple consistency check - could be enhanced
             return ValidationResult(
@@ -521,7 +506,6 @@ class HDFSDataValidator:
                 status="PASS",
                 message="Consistency check passed (simplified implementation)",
                 total_records=total_records
-            )
         
         else:
             return ValidationResult(
@@ -530,7 +514,6 @@ class HDFSDataValidator:
                 status="FAIL",
                 message=f"Unknown rule type: {rule.rule_type}",
                 total_records=total_records
-            )
     
     def _calculate_summary_statistics(self, spark, df) -> Dict[str, Any]:
         """Calculate summary statistics for the dataset"""
@@ -665,7 +648,6 @@ class HDFSDataValidator:
             overall_score=0.0,
             summary_stats={"error": error_message},
             recommendations=[f"Fix data access issue: {error_message}"]
-        )
     
     def save_report(self, report: DataQualityReport, output_path: Optional[str] = None) -> str:
         """Save validation report to file"""

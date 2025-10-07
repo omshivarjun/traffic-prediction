@@ -1,0 +1,9 @@
+﻿{
+    "passed":  0,
+    "exit_code":  1,
+    "timestamp":  "20251006_092935",
+    "failed":  8,
+    "report_file":  "docs\\security\\test-reports\\phase4_test_report_20251006_092935.txt",
+    "duration_seconds":  86.13,
+    "skipped":  0
+}

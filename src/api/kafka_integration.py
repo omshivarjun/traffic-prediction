@@ -16,13 +16,14 @@ except ImportError:
     KAFKA_AVAILABLE = False
     KafkaError = Exception
 import numpy as np
+from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
 class KafkaManager:
     """Manages Kafka connections and operations for traffic prediction system"""
     
-    def __init__(self, bootstrap_servers: str = "localhost:9093"):
+    def __init__(self, bootstrap_servers: str = "localhost:9094"):
         self.bootstrap_servers = bootstrap_servers
         self.producer = None
         self.connected = False
@@ -294,7 +295,8 @@ class StreamingHealthCheck:
             }
 
 # Global instances
-kafka_manager = KafkaManager()
+settings = get_settings()
+kafka_manager = KafkaManager(bootstrap_servers=settings.kafka_bootstrap_servers)
 traffic_streamer = TrafficDataStreamer(kafka_manager)
 prediction_streamer = PredictionStreamer(kafka_manager)
 alert_streamer = AlertStreamer(kafka_manager)

@@ -1,0 +1,27 @@
+{
+  "name": "postgres-traffic-events-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+    "topics": "traffic-events",
+    "connection.url": "jdbc:postgresql://postgres:5432/traffic_prediction",
+    "connection.user": "traffic_user",
+    "connection.password": "traffic_pass_2024",
+    "auto.create": "false",
+    "auto.evolve": "false",
+    "insert.mode": "upsert",
+    "pk.mode": "record_value",
+    "pk.fields": "sensor_id,timestamp",
+    "table.name.format": "traffic.traffic_readings",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "transforms": "flatten,timestamp",
+    "transforms.flatten.type": "org.apache.kafka.connect.transforms.Flatten$Value",
+    "transforms.flatten.delimiter": "_",
+    "transforms.timestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.timestamp.target.type": "Timestamp",
+    "transforms.timestamp.field": "timestamp",
+    "transforms.timestamp.format": "yyyy-MM-dd'T'HH:mm:ss"
+  }
+}

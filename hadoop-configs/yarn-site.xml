@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<configuration>
+    <!-- ResourceManager settings - Task 2.2 requirement -->
+    <property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>resourcemanager</value>
+        <description>ResourceManager hostname</description>
+    </property>
+    
+    <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>resourcemanager:8032</value>
+        <description>ResourceManager RPC address</description>
+    </property>
+    
+    <property>
+        <name>yarn.resourcemanager.scheduler.address</name>
+        <value>resourcemanager:8030</value>
+        <description>ResourceManager scheduler address</description>
+    </property>
+    
+    <property>
+        <name>yarn.resourcemanager.resource-tracker.address</name>
+        <value>resourcemanager:8031</value>
+        <description>ResourceManager resource tracker address</description>
+    </property>
+    
+    <property>
+        <name>yarn.resourcemanager.webapp.address</name>
+        <value>0.0.0.0:8088</value>
+        <description>ResourceManager web UI address</description>
+    </property>
+    
+    <!-- NodeManager settings -->
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+        <description>Auxiliary services for NodeManager</description>
+    </property>
+    
+    <property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>8192</value>
+        <description>Memory available to NodeManager</description>
+    </property>
+    
+    <property>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+        <value>4</value>
+        <description>CPU cores available to NodeManager</description>
+    </property>
+    
+    <property>
+        <name>yarn.nodemanager.webapp.address</name>
+        <value>0.0.0.0:8042</value>
+        <description>NodeManager web UI address</description>
+    </property>
+    
+    <!-- Scheduler settings -->
+    <property>
+        <name>yarn.resourcemanager.scheduler.class</name>
+        <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+        <description>ResourceManager scheduler class</description>
+    </property>
+    
+    <property>
+        <name>yarn.scheduler.capacity.root.default.maximum-allocation-mb</name>
+        <value>8192</value>
+        <description>Maximum memory allocation per container</description>
+    </property>
+    
+    <property>
+        <name>yarn.scheduler.capacity.root.default.maximum-allocation-vcores</name>
+        <value>4</value>
+        <description>Maximum CPU allocation per container</description>
+    </property>
+    
+    <!-- Log aggregation -->
+    <property>
+        <name>yarn.log-aggregation-enable</name>
+        <value>true</value>
+        <description>Enable log aggregation</description>
+    </property>
+    
+    <property>
+        <name>yarn.log.server.url</name>
+        <value>http://historyserver:19888/jobhistory/logs</value>
+        <description>Log server URL</description>
+    </property>
+    
+    <!-- Timeline service -->
+    <property>
+        <name>yarn.timeline-service.enabled</name>
+        <value>true</value>
+        <description>Enable Timeline Service</description>
+    </property>
+    
+    <property>
+        <name>yarn.timeline-service.generic-application-history.enabled</name>
+        <value>true</value>
+        <description>Enable generic application history</description>
+    </property>
+    
+    <property>
+        <name>yarn.timeline-service.hostname</name>
+        <value>historyserver</value>
+        <description>Timeline service hostname</description>
+    </property>
+    
+    <!-- Recovery settings -->
+    <property>
+        <name>yarn.resourcemanager.recovery.enabled</name>
+        <value>true</value>
+        <description>Enable ResourceManager recovery</description>
+    </property>
+    
+    <property>
+        <name>yarn.resourcemanager.store.class</name>
+        <value>org.apache.hadoop.yarn.server.resourcemanager.recovery.FileSystemRMStateStore</value>
+        <description>ResourceManager state store class</description>
+    </property>
+    
+    <!-- Application settings -->
+    <property>
+        <name>yarn.application.classpath</name>
+        <value>/opt/hadoop/etc/hadoop:/opt/hadoop/share/hadoop/common/lib/*:/opt/hadoop/share/hadoop/common/*:/opt/hadoop/share/hadoop/hdfs:/opt/hadoop/share/hadoop/hdfs/lib/*:/opt/hadoop/share/hadoop/hdfs/*:/opt/hadoop/share/hadoop/mapreduce/lib/*:/opt/hadoop/share/hadoop/mapreduce/*:/opt/hadoop/share/hadoop/yarn:/opt/hadoop/share/hadoop/yarn/lib/*:/opt/hadoop/share/hadoop/yarn/*</value>
+        <description>YARN application classpath</description>
+    </property>
+</configuration>

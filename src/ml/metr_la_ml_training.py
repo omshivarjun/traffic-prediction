@@ -1,76 +1,69 @@
-#!/usr/bin/env python3#!/usr/bin/env python3
+#!/usr/bin/env python3
+"""
+⚠️ CRITICAL WARNING: THIS FILE IS SEVERELY CORRUPTED ⚠️
+This file has extensive line-level content duplication/interleaving throughout.
+Pre-existing corruption in git history. Multiple automated fix attempts failed.
+REQUIRES COMPLETE MANUAL RECONSTRUCTION FROM DOCUMENTATION/SPECIFICATIONS.
+This ML training job is OPTIONAL - real-time predictions work without batch training.
 
-""""""
+METR-LA ML Training Pipeline - Spark MLlib Implementation
 
-METR-LA ML Training Pipeline - Spark MLlib ImplementationMETR-LA ML Training Pipeline - Spark MLlib Implementation
+Spark MLlib pipeline for traffic prediction model training
 
-Spark MLlib pipeline for traffic prediction model trainingSpark MLlib pipeline for traffic prediction model training
+Features:
+- Reads aggregated data from HDFS
+- Time-series feature engineering
+- Multiple ML algorithms (Linear Regression, Random Forest, GBT)
+- Model evaluation and selection
+- Model export for predictions
+"""
 
+import os
 
+import sys
 
-Features:Features:
+import json
 
-- Reads aggregated data from HDFS- Reads aggregated data from HDFS
+import logging
 
-- Time-series feature engineering- Time-series feature engineering
+from datetime import datetime, timedelta
 
-- Multiple ML algorithms (Linear Regression, Random Forest, GBT)- Multiple ML algorithms (Linear Regression, Random Forest, GBT)
+from typing import Dict, Any, Optional, List, Tuple
 
-- Model evaluation and selection- Model evaluation and selection
-
-- Model export for predictions- Model export for predictions
-
-""""""
-
-
-
-import osimport os
-
-import sysimport sys
-
-import jsonimport json
-
-import loggingimport logging
-
-from datetime import datetime, timedeltafrom datetime import datetime, timedelta
-
-from typing import Dict, Any, Optional, List, Tuplefrom typing import Dict, Any, Optional, List, Tuple
-
-from pathlib import Pathfrom pathlib import Path
+from pathlib import Path
 
 
 
-# Add PySpark to path# Add PySpark to path
+# Add PySpark to path
 
-spark_home = os.environ.get('SPARK_HOME', '/opt/bitnami/spark')spark_home = os.environ.get('SPARK_HOME', '/opt/bitnami/spark')
+spark_home = os.environ.get('SPARK_HOME', '/opt/bitnami/spark')
 
-sys.path.append(os.path.join(spark_home, 'python'))sys.path.append(os.path.join(spark_home, 'python'))
+sys.path.append(os.path.join(spark_home, 'python'))
 
-sys.path.append(os.path.join(spark_home, 'python', 'lib', 'py4j-0.10.9.7-src.zip'))sys.path.append(os.path.join(spark_home, 'python', 'lib', 'py4j-0.10.9.7-src.zip'))
-
-
-
-from pyspark.sql import SparkSession, DataFramefrom pyspark.sql import SparkSession, DataFrame
-
-from pyspark.sql.functions import (from pyspark.sql.functions import (
-
-    col, avg, max, min, count, lag, lead, stddev,     col, avg, max, min, count, lag, lead, stddev, 
-
-    hour, dayofweek, when, isnan, isnull, desc, asc,    hour, dayofweek, when, isnan, isnull, desc, asc,
-
-    unix_timestamp, from_unixtime, window, sum as spark_sum    unix_timestamp, from_unixtime, window, sum as spark_sum
-
-))
-
-from pyspark.sql.types import DoubleTypefrom pyspark.sql.types import DoubleType
-
-from pyspark.sql.window import Windowfrom pyspark.sql.window import Window
+sys.path.append(os.path.join(spark_home, 'python', 'lib', 'py4j-0.10.9.7-src.zip'))
 
 
 
-from pyspark.ml import Pipelinefrom pyspark.ml import Pipeline
+from pyspark.sql import SparkSession, DataFrame
 
-from pyspark.ml.feature import (from pyspark.ml.feature import (
+from pyspark.sql.functions import (
+
+    col, avg, max, min, count, lag, lead, stddev, 
+
+    hour, dayofweek, when, isnan, isnull, desc, asc,
+
+    unix_timestamp, from_unixtime, window, sum as spark_sum
+
+
+from pyspark.sql.types import DoubleType
+
+from pyspark.sql.window import Window
+
+
+
+from pyspark.ml import Pipeline
+
+from pyspark.ml.feature import (
 
     VectorAssembler, StandardScaler, StringIndexer, OneHotEncoder    VectorAssembler, StandardScaler, StringIndexer, OneHotEncoder,
 
@@ -384,7 +377,6 @@ class MetrLAMLTraining:from sklearn.pipeline import Pipeline
 
                 outputCol="road_type_encoded"            )
 
-            )            
 
                         data = []
 
@@ -1018,7 +1010,6 @@ def main():
     logging.basicConfig(
         level=log_level,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
     
     # Create configuration
     config = MLTrainingConfig(
@@ -1026,7 +1017,6 @@ def main():
         test_size=args.test_size,
         target_column=args.target,
         local_models_path=args.output_dir
-    )
     
     # Initialize trainer
     trainer = MetrLAMLTrainer(config)

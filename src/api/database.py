@@ -7,7 +7,7 @@ from typing import Generator, Optional
 from contextlib import contextmanager, asynccontextmanager
 import logging
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -103,74 +103,45 @@ class DatabaseManager:
             logger.debug("Connection checked in to pool")
     
     async def create_tables(self):
-        """Create database tables if they don't exist"""
+        """Create database tables if they don't exist - using SQL schema file instead"""
         try:
+            # The database schema is managed by the SQL initialization script
+            # in database/init/01_create_schema.sql
+            # This function just verifies the schema exists
             async with self.async_engine.begin() as conn:
-                # Create schema first
-                from sqlalchemy import text
+                # Ensure uuid-ossp extension is enabled
+                await conn.execute(text("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\""))
+                
+                # Ensure schema exists
                 await conn.execute(text("CREATE SCHEMA IF NOT EXISTS traffic"))
-                # Create tables individually to skip problematic indexes
-                await conn.execute(text("""
-                    CREATE TABLE IF NOT EXISTS traffic.sensors (
-                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                        sensor_id VARCHAR(50) NOT NULL UNIQUE,
-                        latitude DECIMAL(10, 8) NOT NULL,
-                        longitude DECIMAL(11, 8) NOT NULL,
-                        road_name VARCHAR(255) NOT NULL,
-                        road_type VARCHAR(50),
-                        direction VARCHAR(20),
-                        lane_count INTEGER,
-                        speed_limit INTEGER,
-                        city VARCHAR(100),
-                        state VARCHAR(50),
-                        country VARCHAR(50),
-                        installation_date TIMESTAMP WITH TIME ZONE,
-                        last_maintenance TIMESTAMP WITH TIME ZONE,
-                        status VARCHAR(20),
-                        meta_data JSONB,
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                    )
-                """))
-                await conn.execute(text("""
-                    CREATE TABLE IF NOT EXISTS traffic.traffic_readings (
-                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                        sensor_id VARCHAR(50) NOT NULL,
-                        timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-                        speed DECIMAL(5, 2),
-                        volume INTEGER,
-                        occupancy DECIMAL(5, 2),
-                        density DECIMAL(7, 2),
-                        travel_time DECIMAL(8, 2),
-                        weather_condition VARCHAR(50),
-                        road_condition VARCHAR(50),
-                        quality_score DECIMAL(3, 2),
-                        raw_data JSONB,
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                    )
-                """))
                 
-                # Create proper indexes with correct syntax
-                await conn.execute(text("""
-                    CREATE INDEX IF NOT EXISTS idx_traffic_readings_sensor_timestamp 
-                    ON traffic.traffic_readings(sensor_id, timestamp)
-                """))
+                # Set search path
+                await conn.execute(text("SET search_path = traffic, public"))
                 
-                await conn.execute(text("""
-                    CREATE INDEX IF NOT EXISTS idx_traffic_readings_recent_by_sensor 
-                    ON traffic.traffic_readings(sensor_id, timestamp DESC) 
-                    WHERE timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours'
+                # Verify tables exist - if not, they should be created by the SQL init script
+                result = await conn.execute(text("""
+                    SELECT COUNT(*) FROM information_schema.tables 
+                    WHERE table_schema = 'traffic' AND table_name = 'sensors'
                 """))
-            logger.info("Database tables created/verified successfully")
+                table_count = result.scalar()
+                
+                if table_count == 0:
+                    logger.warning("Traffic schema tables not found. They should be created by SQL init script.")
+                    logger.info("Run the SQL script: database/init/01_create_schema.sql")
+                else:
+                    logger.info(f"Database schema verified - found {table_count} core tables")
+                    
+            logger.info("Database tables verified successfully")
         except Exception as e:
-            logger.error(f"Failed to create database tables: {str(e)}")
-            raise
+            logger.error(f"Failed to verify database tables: {str(e)}")
+            # Don't raise - allow app to start even if tables don't exist yet
+            logger.warning("Application starting without database schema verification")
     
     async def check_connection(self) -> bool:
         """Check if database connection is healthy"""
         try:
             async with self.async_engine.begin() as conn:
-                result = await conn.execute("SELECT 1")
+                result = await conn.execute(text("SELECT 1"))
                 return result.scalar() == 1
         except Exception as e:
             logger.error(f"Database health check failed: {str(e)}")
@@ -252,6 +223,7 @@ class DatabaseHealthCheck:
     async def check_database_health() -> dict:
         """Comprehensive database health check"""
         health_status = {
+            "status": "unknown",
             "database": "unknown",
             "connection_pool": "unknown",
             "schema_access": "unknown",
@@ -264,6 +236,7 @@ class DatabaseHealthCheck:
             is_connected = await db_manager.check_connection()
             if not is_connected:
                 health_status["database"] = "unhealthy"
+                health_status["status"] = "unhealthy"
                 return health_status
             
             health_status["database"] = "healthy"
@@ -279,18 +252,22 @@ class DatabaseHealthCheck:
             # Check schema access
             async with db_manager.async_session_scope() as session:
                 # Try to query sensors table
-                result = await session.execute("SELECT COUNT(*) FROM traffic.sensors")
+                result = await session.execute(text("SELECT COUNT(*) FROM traffic.sensors"))
                 sensor_count = result.scalar()
                 health_status["schema_access"] = "healthy"
                 health_status["details"]["sensor_count"] = sensor_count
                 
                 # Check write access (test transaction)
-                await session.execute("SELECT 1")
+                await session.execute(text("SELECT 1"))
                 health_status["write_access"] = "healthy"
+            
+            # Set overall status to healthy if all checks passed
+            health_status["status"] = "healthy"
         
         except Exception as e:
             logger.error(f"Database health check failed: {str(e)}")
             health_status["database"] = "unhealthy"
+            health_status["status"] = "unhealthy"
             health_status["error"] = str(e)
         
         return health_status

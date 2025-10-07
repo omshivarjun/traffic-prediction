@@ -1,0 +1,37 @@
+# FastAPI Backend Dockerfile
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements-fastapi.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements-fastapi.txt
+
+# Copy application code
+COPY src/ ./src/
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Default port (can be overridden by environment variable)
+ENV API_PORT=8001
+
+# Expose port
+EXPOSE 8001
+
+# Health check (uses API_PORT from environment)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${API_PORT:-8001}/health || exit 1
+
+# Run the application (using uvicorn but reading settings from env)
+CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port ${API_PORT:-8001}"]

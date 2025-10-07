@@ -155,13 +155,12 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_incidents_status ON traffic_incident
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_incidents_type ON traffic_incidents(incident_type);
 
 -- Composite indexes for common queries
+-- Note: Removed WHERE clauses with CURRENT_TIMESTAMP as they require IMMUTABLE functions
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_traffic_readings_recent_by_sensor 
-ON traffic_readings(sensor_id, timestamp DESC) 
-WHERE timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours';
+ON traffic_readings(sensor_id, timestamp DESC);
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_predictions_recent_by_model 
-ON predictions(model_name, prediction_timestamp DESC) 
-WHERE prediction_timestamp > CURRENT_TIMESTAMP - INTERVAL '7 days';
+ON predictions(model_name, prediction_timestamp DESC);
 
 -- =====================================================
 -- CREATE TRIGGERS AND FUNCTIONS

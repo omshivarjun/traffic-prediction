@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-const React = require('react');
+import React from 'react';
 
 // Mock Next.js router
 jest.mock('next/router', () => ({

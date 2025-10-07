@@ -248,6 +248,17 @@ class Settings(BaseSettings):
     kafka_bootstrap_servers: str = Field(default="localhost:9094", validation_alias="KAFKA_BOOTSTRAP_SERVERS")
     kafka_schema_registry_url: str = Field(default="http://localhost:8081", validation_alias="SCHEMA_REGISTRY_URL")
     
+    # Security settings
+    jwt_secret_key: str = Field(default="your-secret-key-change-in-production-min-32-chars", validation_alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
+    jwt_access_token_expire_minutes: int = Field(default=15, validation_alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
+    jwt_refresh_token_expire_days: int = Field(default=7, validation_alias="JWT_REFRESH_TOKEN_EXPIRE_DAYS")
+    
+    # Rate limiting
+    rate_limit_enabled: bool = Field(default=True, validation_alias="RATE_LIMIT_ENABLED")
+    rate_limit_per_minute: int = Field(default=100, validation_alias="RATE_LIMIT_PER_MINUTE")
+    rate_limit_per_hour: int = Field(default=1000, validation_alias="RATE_LIMIT_PER_HOUR")
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

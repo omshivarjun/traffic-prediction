@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   zookeeper:
@@ -20,7 +19,7 @@ services:
     restart: always
     ports:
       - 9871:9870  # Changed from 9870 to avoid conflict
-      - 9001:9000  # Changed from 9000 to avoid conflict
+      - 9010:9000  # Changed from 9001 to 9010 to avoid WSL relay conflict
     volumes:
       - hadoop_namenode:/hadoop/dfs/name
     environment:
@@ -96,8 +95,7 @@ services:
     env_file:
       - ./hadoop.env
     environment:
-      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore/metastore
-      - SERVICE_PRECONDITION=hive-metastore:9083 namenode:9870 datanode:9864 resourcemanager:8088
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore-postgresql:5432/metastore
     ports:
       - 10000:10000
       - 10002:10002
@@ -114,7 +112,10 @@ services:
       - ./hadoop.env
     command: /opt/hive/bin/hive --service metastore
     environment:
-      - SERVICE_PRECONDITION=namenode:9870 datanode:9864 hive-metastore-postgresql:5432
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore-postgresql:5432/metastore
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName=org.postgresql.Driver
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName=hive
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword=hive
     ports:
       - 9083:9083
     depends_on:
@@ -133,7 +134,8 @@ services:
     container_name: kafka-broker1
     hostname: kafka-broker1
     ports:
-      - 9094:9092  # Changed from 9093 to avoid conflict
+      - 9092:9092  # Internal port for host clients resolving kafka-broker1
+      - 9094:9092  # External port (original mapping)
       - 29094:29092  # Changed from 29093 to avoid conflict
     env_file:
       - ./kafka-config.env
@@ -208,6 +210,35 @@ services:
       - kafka-broker1
       - schema-registry
       - kafka-connect
+
+  # Stream Processor for real-time traffic event processing
+  stream-processor:
+    build:
+      context: ./src/stream-processing
+      dockerfile: Dockerfile
+    container_name: stream-processor
+    restart: always
+    depends_on:
+      - kafka-broker1
+      - schema-registry
+    environment:
+      KAFKA_BROKERS: kafka-broker1:9092
+      GROUP_ID: stream-processor-group
+      CLIENT_ID: stream-processor-client
+      INPUT_TOPIC: traffic-raw
+      OUTPUT_TOPIC: traffic-events
+      HEALTH_PORT: 3001
+      NODE_ENV: production
+    ports:
+      - 3001:3001  # Health check port
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - default
 
   # FastAPI backend (containerized)
   fastapi:
@@ -309,6 +340,50 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # FastAPI Backend (Task 2)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: traffic-backend
+    hostname: backend
+    restart: always
+    ports:
+      - 8001:8001
+    environment:
+      # Database connection (internal Docker network)
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: traffic_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: casa1234
+      DATABASE_URL: postgresql://postgres:casa1234@postgres:5432/traffic_db
+      ASYNC_DATABASE_URL: postgresql+asyncpg://postgres:casa1234@postgres:5432/traffic_db
+      # Kafka connection (internal Docker network)
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker1:9092
+      KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      # API settings
+      API_HOST: 0.0.0.0
+      API_PORT: 8001
+      ENVIRONMENT: production
+      DEBUG: "False"
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka-broker1:
+        condition: service_started
+      schema-registry:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - default
 
 volumes:
   hadoop_namenode:

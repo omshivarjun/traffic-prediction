@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+    <!-- MapReduce framework - Task 2.2 requirement -->
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+        <description>MapReduce framework implementation</description>
+    </property>
+    
+    <!-- MapReduce Application Master environment -->
+    <property>
+        <name>yarn.app.mapreduce.am.env</name>
+        <value>HADOOP_MAPRED_HOME=/opt/hadoop</value>
+        <description>MapReduce Application Master environment</description>
+    </property>
+    
+    <!-- Map task environment -->
+    <property>
+        <name>mapreduce.map.env</name>
+        <value>HADOOP_MAPRED_HOME=/opt/hadoop</value>
+        <description>Map task environment</description>
+    </property>
+    
+    <!-- Reduce task environment -->
+    <property>
+        <name>mapreduce.reduce.env</name>
+        <value>HADOOP_MAPRED_HOME=/opt/hadoop</value>
+        <description>Reduce task environment</description>
+    </property>
+    
+    <!-- Job History Server settings -->
+    <property>
+        <name>mapreduce.jobhistory.address</name>
+        <value>historyserver:10020</value>
+        <description>Job History Server RPC address</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.jobhistory.webapp.address</name>
+        <value>historyserver:19888</value>
+        <description>Job History Server web UI address</description>
+    </property>
+    
+    <!-- Memory settings for MapReduce tasks -->
+    <property>
+        <name>mapreduce.map.memory.mb</name>
+        <value>2048</value>
+        <description>Memory limit for map tasks</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.reduce.memory.mb</name>
+        <value>4096</value>
+        <description>Memory limit for reduce tasks</description>
+    </property>
+    
+    <!-- Java heap settings for MapReduce tasks -->
+    <property>
+        <name>mapreduce.map.java.opts</name>
+        <value>-Xmx1536m</value>
+        <description>Java heap size for map tasks</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.reduce.java.opts</name>
+        <value>-Xmx3072m</value>
+        <description>Java heap size for reduce tasks</description>
+    </property>
+    
+    <!-- Output compression for better performance -->
+    <property>
+        <name>mapreduce.map.output.compress</name>
+        <value>true</value>
+        <description>Enable map output compression</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.map.output.compress.codec</name>
+        <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+        <description>Compression codec for map output</description>
+    </property>
+    
+    <!-- Application Master memory -->
+    <property>
+        <name>yarn.app.mapreduce.am.resource.mb</name>
+        <value>2048</value>
+        <description>Memory for MapReduce Application Master</description>
+    </property>
+</configuration>

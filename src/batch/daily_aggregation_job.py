@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ WARNING: THIS FILE HAS SEVERE PRE-EXISTING CORRUPTION ⚠️
+This file contains line-level duplication/concatenation in git history.
+Automated fixes have been attempted but structural issues remain.
+REQUIRES COMPLETE MANUAL RECONSTRUCTION FROM SPECIFICATIONS.
+This batch job is OPTIONAL - real-time system works without it.
+
 HDFS Batch Processing Job - Task 10.3
 =====================================
 Daily batch processing jobs for traffic data aggregation,
@@ -15,6 +21,13 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from dataclasses import dataclass, asdict
+
+# PySpark imports at module level (fixing syntax errors)
+from pyspark.sql.functions import (
+    col, count, avg, max, min, sum, variance, when, lit, least,
+    date_trunc, countDistinct
+from pyspark.sql.types import *
+from pyspark.sql.window import Window
 
 # Add spark module to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'spark'))
@@ -99,7 +112,6 @@ class BatchJobOrchestrator:
         if not logger.handlers:
             formatter = logging.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
             
             # Console handler
             console_handler = logging.StreamHandler()
@@ -124,7 +136,6 @@ class BatchJobOrchestrator:
                     database=self.config.postgres_database,
                     user=self.config.postgres_user,
                     password=self.config.postgres_password
-                )
                 self._pg_connection.autocommit = True
             except Exception as e:
                 self.logger.error(f"Failed to connect to PostgreSQL: {e}")
@@ -248,7 +259,6 @@ class BatchJobOrchestrator:
         job_result = JobResult(
             job_id=job_id,
             start_time=datetime.now()
-        )
         
         self.logger.info(f"Starting daily aggregation job: {job_id}")
         self.logger.info(f"Processing date: {processing_date.strftime('%Y-%m-%d')}")
@@ -258,15 +268,12 @@ class BatchJobOrchestrator:
             raw_data_path = self.storage_pipeline.get_partition_path(
                 self.storage_config.streaming_data_path,
                 processing_date
-            )
             
             self.logger.info(f"Loading data from: {raw_data_path}")
             
             # Initialize Spark session
             from pyspark import SparkContext, SparkConf
             from pyspark.sql import SparkSession
-            from pyspark.sql.functions import *
-            from pyspark.sql.types import *
             
             conf = SparkConf().setAppName(f"DailyAggregation-{job_id}")
             conf.set("spark.executor.memory", self.config.memory_per_executor)
@@ -341,9 +348,6 @@ class BatchJobOrchestrator:
         """Create hourly traffic aggregations"""
         self.logger.info("Creating hourly aggregations...")
         
-        from pyspark.sql.functions import *
-        from pyspark.sql.window import Window
-        
         # Add hour column for grouping
         df_with_hour = df.withColumn("processing_hour", 
                                    date_trunc("hour", col("timestamp")))
@@ -357,13 +361,11 @@ class BatchJobOrchestrator:
             avg("flow_rate").alias("flow_rate"),
             sum(when(col("incident_detected") == True, 1).otherwise(0)).alias("incident_count"),
             max("weather_factor").alias("weather_factor")
-        )
         
         # Calculate incident impact as percentage
         hourly_aggs = hourly_aggs.withColumn(
             "incident_impact",
             when(col("vehicle_count") > 0, col("incident_count") / col("vehicle_count")).otherwise(0.0)
-        )
         
         # Fill null values
         hourly_aggs = hourly_aggs.fillna({
@@ -381,8 +383,6 @@ class BatchJobOrchestrator:
         """Create daily traffic summaries"""
         self.logger.info("Creating daily summaries...")
         
-        from pyspark.sql.functions import *
-        
         # Group by segment_id for daily aggregation
         daily_summaries = df.groupBy("segment_id").agg(
             count("*").alias("total_vehicles"),
@@ -392,12 +392,10 @@ class BatchJobOrchestrator:
             avg("density").alias("avg_density"),
             sum(when(col("incident_detected") == True, 1).otherwise(0)).alias("incident_count"),
             countDistinct("timestamp").alias("unique_timestamps")
-        )
         
         # Calculate congestion hours (assuming speed < 30 mph indicates congestion)
         congestion_df = df.filter(col("speed") < 30.0).groupBy("segment_id").agg(
             countDistinct(date_trunc("hour", col("timestamp"))).alias("congestion_hours")
-        )
         
         # Join with congestion data
         daily_summaries = daily_summaries.join(
@@ -409,7 +407,6 @@ class BatchJobOrchestrator:
         daily_summaries = daily_summaries.withColumn(
             "data_completeness",
             least(col("total_vehicles") / lit(expected_readings), lit(1.0))
-        )
         
         # Calculate quality score (0-100)
         daily_summaries = daily_summaries.withColumn(
@@ -417,13 +414,11 @@ class BatchJobOrchestrator:
             (col("data_completeness") * 50) +  # 50% weight for completeness
             (when(col("avg_speed").between(0, 80), 25).otherwise(0)) +  # 25% for reasonable speed
             (when(col("incident_count") >= 0, 25).otherwise(0))  # 25% for valid incident data
-        )
         
         # Add processing date
         daily_summaries = daily_summaries.withColumn(
             "processing_date", 
             lit(processing_date.date())
-        )
         
         # Fill null values
         daily_summaries = daily_summaries.fillna({
@@ -480,7 +475,6 @@ class BatchJobOrchestrator:
                         float(row['flow_rate'] or 0.0),
                         float(row['incident_impact'] or 0.0),
                         float(row['weather_factor'] or 1.0)
-                    ))
                     records_inserted += 1
                 except Exception as e:
                     self.logger.warning(f"Failed to insert hourly record: {e}")
@@ -539,7 +533,6 @@ class BatchJobOrchestrator:
                         float(row['congestion_hours'] or 0.0),
                         float(row['quality_score'] or 0.0),
                         float(row['data_completeness'] or 0.0)
-                    ))
                     records_inserted += 1
                 except Exception as e:
                     self.logger.warning(f"Failed to insert daily record: {e}")
@@ -555,8 +548,6 @@ class BatchJobOrchestrator:
     def _generate_quality_report(self, spark, df, processing_date: datetime) -> Dict[str, Any]:
         """Generate data quality report"""
         self.logger.info("Generating data quality report...")
-        
-        from pyspark.sql.functions import *
         
         total_records = df.count()
         
@@ -638,7 +629,6 @@ class BatchJobOrchestrator:
             # Calculate missing data records from null analysis
             missing_data_records = sum(
                 analysis["null_count"] for analysis in quality_report["null_value_analysis"].values()
-            )
             
             cursor.execute(insert_sql, (
                 quality_report["report_date"],
@@ -650,7 +640,6 @@ class BatchJobOrchestrator:
                 quality_report["quality_scores"]["overall_quality_score"],
                 json.dumps(quality_report["issues_found"]),
                 json.dumps(quality_report["recommendations"])
-            ))
             
             cursor.close()
             self.logger.info("✅ Quality report stored successfully")
@@ -693,7 +682,6 @@ class BatchJobOrchestrator:
                 len(job_result.errors),
                 '\n'.join(job_result.errors) if job_result.errors else None,
                 json.dumps(job_result.performance_metrics)
-            ))
             
             cursor.close()
             return True

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+    <!-- Replication factor - Task 2.2 requirement (replication=1 for local) -->
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+        <description>Default block replication for pseudo-distributed mode</description>
+    </property>
+    
+    <!-- NameNode data directory -->
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:///hadoop/dfs/name</value>
+        <description>Directory for NameNode metadata</description>
+    </property>
+    
+    <!-- DataNode data directory -->
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:///hadoop/dfs/data</value>
+        <description>Directory for DataNode data storage</description>
+    </property>
+    
+    <!-- Enable WebHDFS REST API -->
+    <property>
+        <name>dfs.webhdfs.enabled</name>
+        <value>true</value>
+        <description>Enable WebHDFS REST API</description>
+    </property>
+    
+    <!-- Disable permissions for development -->
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>false</value>
+        <description>Disable permissions for development</description>
+    </property>
+    
+    <!-- Disable hostname checking for DataNode registration -->
+    <property>
+        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+        <value>false</value>
+        <description>Disable IP-hostname check for DataNode registration</description>
+    </property>
+    
+    <!-- Block size for small files in development -->
+    <property>
+        <name>dfs.blocksize</name>
+        <value>134217728</value>
+        <description>Block size (128MB) for HDFS blocks</description>
+    </property>
+    
+    <!-- NameNode HTTP address -->
+    <property>
+        <name>dfs.namenode.http-address</name>
+        <value>0.0.0.0:9870</value>
+        <description>NameNode web interface address</description>
+    </property>
+    
+    <!-- DataNode HTTP address -->
+    <property>
+        <name>dfs.datanode.http.address</name>
+        <value>0.0.0.0:9864</value>
+        <description>DataNode web interface address</description>
+    </property>
+    
+    <!-- Secondary NameNode HTTP address -->
+    <property>
+        <name>dfs.namenode.secondary.http-address</name>
+        <value>0.0.0.0:9868</value>
+        <description>Secondary NameNode web interface address</description>
+    </property>
+</configuration>

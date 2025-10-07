@@ -29,6 +29,9 @@ import psycopg2.pool
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'ml'))
 from model_persistence import ModelPersistenceManager
 
+# SAFETY-CRITICAL: Import safety validator
+from safety_validator import PredictionSafetyValidator, validate_predictions_safe
+
 # Spark integration
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
@@ -516,6 +519,10 @@ class PredictionGenerator:
         self.config = config
         self.model_manager = model_manager
         self.prediction_settings = config.prediction_settings
+        
+        # SAFETY-CRITICAL: Initialize safety validator
+        self.safety_validator = PredictionSafetyValidator()
+        logger.info("Safety validator initialized for prediction bounds checking")
     
     def generate_predictions(self, features: pd.DataFrame) -> List[Dict]:
         """Generate predictions for all sensors and horizons"""
@@ -552,8 +559,24 @@ class PredictionGenerator:
             except Exception as e:
                 logger.error(f"Failed to generate predictions for {horizon}-minute horizon: {str(e)}")
         
-        logger.info(f"Generated total of {len(all_predictions)} predictions")
-        return all_predictions
+        # SAFETY-CRITICAL: Validate all predictions before returning
+        logger.info(f"Validating {len(all_predictions)} predictions for safety bounds")
+        validated_predictions, validation_summary = self.safety_validator.validate_batch(all_predictions)
+        
+        # Log validation results
+        logger.info(
+            f"Validation complete: {validation_summary['valid']}/{validation_summary['total']} valid, "
+            f"{validation_summary['warnings']} warnings, {validation_summary['invalid']} invalid"
+        )
+        
+        if validation_summary['invalid'] > 0:
+            logger.error(
+                f"WARNING: {validation_summary['invalid']} predictions failed safety validation "
+                f"and were corrected/removed"
+            )
+        
+        logger.info(f"Generated and validated total of {len(validated_predictions)} predictions")
+        return validated_predictions
     
     def _generate_horizon_predictions(self, features: pd.DataFrame, model: Any, 
                                     metadata: Dict, horizon_minutes: int) -> List[Dict]:

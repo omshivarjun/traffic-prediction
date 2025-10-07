@@ -1,0 +1,88 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.8, pytest-7.4.3, pluggy-1.6.0 -- C:\Users\HP\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.8', 'Platform': 'Windows-10-10.0.26100-SP0', 'Packages': {'pytest': '7.4.3', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '3.7.1', 'langsmith': '0.4.31', 'locust': '2.41.3', 'asyncio': '0.21.1', 'cov': '4.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'mock': '3.15.1', 'timeout': '2.2.0', 'xdist': '3.5.0', 'typeguard': '4.4.4'}, 'JAVA_HOME': 'C:\\Java\\jdk1.8.0_202'}
+rootdir: C:\traffic-prediction
+plugins: anyio-3.7.1, langsmith-0.4.31, locust-2.41.3, asyncio-0.21.1, cov-4.1.0, json-report-1.5.0, metadata-3.1.1, mock-3.15.1, timeout-2.2.0, xdist-3.5.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT
+collecting ... collected 55 items
+
+tests/performance/test_latency_benchmarks.py::TestAPILatencyBenchmarks::test_1_health_endpoint_latency PASSED [  1%]
+tests/performance/test_latency_benchmarks.py::TestAPILatencyBenchmarks::test_2_traffic_current_endpoint_latency PASSED [  3%]
+tests/performance/test_latency_benchmarks.py::TestAPILatencyBenchmarks::test_3_prediction_endpoint_latency PASSED [  5%]
+tests/performance/test_latency_benchmarks.py::TestAPILatencyBenchmarks::test_4_traffic_historical_endpoint_latency PASSED [  7%]
+tests/performance/test_latency_benchmarks.py::TestDatabaseLatencyBenchmarks::test_5_simple_select_latency SKIPPED [  9%]
+tests/performance/test_latency_benchmarks.py::TestDatabaseLatencyBenchmarks::test_6_traffic_data_query_latency SKIPPED [ 10%]
+tests/performance/test_latency_benchmarks.py::TestKafkaLatencyBenchmarks::test_7_kafka_message_send_latency FAILED [ 12%]
+tests/performance/test_latency_benchmarks.py::TestKafkaLatencyBenchmarks::test_8_kafka_throughput FAILED [ 14%]
+tests/performance/test_latency_benchmarks.py::TestEndToEndLatency::test_9_data_ingestion_to_api_latency PASSED [ 16%]
+tests/performance/test_latency_benchmarks.py::TestEndToEndLatency::test_10_prediction_generation_latency PASSED [ 18%]
+tests/performance/test_system_metrics.py::TestCPUUtilization::test_1_baseline_cpu_utilization PASSED [ 20%]
+tests/performance/test_system_metrics.py::TestCPUUtilization::test_2_cpu_under_api_load PASSED [ 21%]
+tests/performance/test_system_metrics.py::TestMemoryUtilization::test_3_baseline_memory_usage PASSED [ 23%]
+tests/performance/test_system_metrics.py::TestMemoryUtilization::test_4_memory_growth_during_operation PASSED [ 25%]
+tests/performance/test_system_metrics.py::TestDiskIOPerformance::test_5_disk_io_counters PASSED [ 27%]
+tests/performance/test_system_metrics.py::TestDiskIOPerformance::test_6_disk_space_availability PASSED [ 29%]
+tests/performance/test_system_metrics.py::TestNetworkUtilization::test_7_network_io_counters PASSED [ 30%]
+tests/performance/test_system_metrics.py::TestNetworkUtilization::test_8_network_connections PASSED [ 32%]
+tests/performance/test_system_metrics.py::TestProcessMetrics::test_9_python_process_metrics PASSED [ 34%]
+tests/performance/test_system_metrics.py::TestProcessMetrics::test_10_docker_container_count SKIPPED [ 36%]
+tests/load/test_system_load.py::TestConcurrentUserLoad::test_1_concurrent_health_checks FAILED [ 38%]
+tests/load/test_system_load.py::TestConcurrentUserLoad::test_2_concurrent_traffic_data_requests PASSED [ 40%]
+tests/load/test_system_load.py::TestConcurrentUserLoad::test_3_sustained_load_test FAILED [ 41%]
+tests/load/test_system_load.py::TestAPIRateLimits::test_4_rate_limit_enforcement PASSED [ 43%]
+tests/load/test_system_load.py::TestAPIRateLimits::test_5_rate_limit_recovery FAILED [ 45%]
+tests/load/test_system_load.py::TestDatabaseConnectionPooling::test_6_concurrent_database_queries PASSED [ 47%]
+tests/load/test_system_load.py::TestDatabaseConnectionPooling::test_7_database_connection_exhaustion PASSED [ 49%]
+tests/load/test_system_load.py::TestKafkaConsumerLag::test_8_kafka_producer_throughput SKIPPED [ 50%]
+tests/load/test_system_load.py::TestKafkaConsumerLag::test_9_consumer_lag_monitoring PASSED [ 52%]
+tests/load/test_system_load.py::TestResourceUtilization::test_10_cpu_utilization_under_load PASSED [ 54%]
+tests/load/test_system_load.py::TestResourceUtilization::test_11_memory_utilization_under_load PASSED [ 56%]
+tests/stress/test_failure_scenarios.py::TestServiceFailureRecovery::test_1_backend_service_recovery SKIPPED [ 58%]
+tests/stress/test_failure_scenarios.py::TestServiceFailureRecovery::test_2_graceful_degradation_on_error FAILED [ 60%]
+tests/stress/test_failure_scenarios.py::TestServiceFailureRecovery::test_3_database_connection_loss_handling PASSED [ 61%]
+tests/stress/test_failure_scenarios.py::TestNetworkFailureScenarios::test_4_timeout_handling PASSED [ 63%]
+tests/stress/test_failure_scenarios.py::TestNetworkFailureScenarios::test_5_connection_retry_logic PASSED [ 65%]
+tests/stress/test_failure_scenarios.py::TestNetworkFailureScenarios::test_6_concurrent_connection_handling FAILED [ 67%]
+tests/stress/test_failure_scenarios.py::TestResourceExhaustion::test_7_high_cpu_load_handling PASSED [ 69%]
+tests/stress/test_failure_scenarios.py::TestResourceExhaustion::test_8_memory_pressure_handling PASSED [ 70%]
+tests/stress/test_failure_scenarios.py::TestResourceExhaustion::test_9_disk_io_stress PASSED [ 72%]
+tests/stress/test_failure_scenarios.py::TestDataCorruptionScenarios::test_10_invalid_json_handling FAILED [ 74%]
+tests/stress/test_failure_scenarios.py::TestDataCorruptionScenarios::test_11_sql_injection_protection FAILED [ 76%]
+tests/stress/test_failure_scenarios.py::TestDataCorruptionScenarios::test_12_extreme_payload_sizes FAILED [ 78%]
+tests/safety/test_ml_safety_validation.py::TestMLModelSafety::test_1_prediction_accuracy_validation PASSED [ 80%]
+tests/safety/test_ml_safety_validation.py::TestMLModelSafety::test_2_false_positive_rate_validation PASSED [ 81%]
+tests/safety/test_ml_safety_validation.py::TestMLModelSafety::test_3_false_negative_rate_validation PASSED [ 83%]
+tests/safety/test_ml_safety_validation.py::TestMLModelSafety::test_4_prediction_confidence_thresholds PASSED [ 85%]
+tests/safety/test_ml_safety_validation.py::TestDataQualityValidation::test_5_input_data_completeness PASSED [ 87%]
+tests/safety/test_ml_safety_validation.py::TestDataQualityValidation::test_6_data_value_ranges PASSED [ 89%]
+tests/safety/test_ml_safety_validation.py::TestDataQualityValidation::test_7_data_freshness PASSED [ 90%]
+tests/safety/test_ml_safety_validation.py::TestDataQualityValidation::test_8_duplicate_detection PASSED [ 92%]
+tests/safety/test_ml_safety_validation.py::TestAnomalyDetection::test_9_outlier_detection PASSED [ 94%]
+tests/safety/test_ml_safety_validation.py::TestAnomalyDetection::test_10_anomaly_alerting PASSED [ 96%]
+tests/safety/test_ml_safety_validation.py::TestModelDriftDetection::test_11_prediction_distribution_monitoring PASSED [ 98%]
+tests/safety/test_ml_safety_validation.py::TestModelDriftDetection::test_12_model_performance_degradation PASSED [100%]
+
+================================== FAILURES ===================================
+C:\Users\HP\AppData\Local\Programs\Python\Python311\Lib\site-packages\kafka\producer\kafka.py:964: kafka.errors.KafkaTimeoutError: KafkaTimeoutError: Failed to update metadata after 60.0 secs.
+C:\Users\HP\AppData\Local\Programs\Python\Python311\Lib\site-packages\kafka\producer\kafka.py:964: kafka.errors.KafkaTimeoutError: KafkaTimeoutError: Failed to update metadata after 60.0 secs.
+C:\traffic-prediction\tests\load\test_system_load.py:76: AssertionError: Success rate 0.00% below 90.0% threshold
+C:\traffic-prediction\tests\load\test_system_load.py:165: AssertionError: Success rate 10.71% below threshold under sustained load
+C:\traffic-prediction\tests\load\test_system_load.py:227: AssertionError: System did not recover from rate limit
+C:\traffic-prediction\tests\stress\test_failure_scenarios.py:97: AssertionError: System crashed after encountering errors
+C:\traffic-prediction\tests\stress\test_failure_scenarios.py:215: AssertionError: Too many connection failures: 0.00%
+C:\traffic-prediction\tests\stress\test_failure_scenarios.py:371: AssertionError: System failed after invalid JSON
+C:\traffic-prediction\tests\stress\test_failure_scenarios.py:409: AssertionError: Database compromised or unavailable
+C:\traffic-prediction\tests\stress\test_failure_scenarios.py:428: AssertionError: Unexpected status: 404
+=========================== short test summary info ===========================
+FAILED tests/performance/test_latency_benchmarks.py::TestKafkaLatencyBenchmarks::test_7_kafka_message_send_latency
+FAILED tests/performance/test_latency_benchmarks.py::TestKafkaLatencyBenchmarks::test_8_kafka_throughput
+FAILED tests/load/test_system_load.py::TestConcurrentUserLoad::test_1_concurrent_health_checks
+FAILED tests/load/test_system_load.py::TestConcurrentUserLoad::test_3_sustained_load_test
+FAILED tests/load/test_system_load.py::TestAPIRateLimits::test_5_rate_limit_recovery
+FAILED tests/stress/test_failure_scenarios.py::TestServiceFailureRecovery::test_2_graceful_degradation_on_error
+FAILED tests/stress/test_failure_scenarios.py::TestNetworkFailureScenarios::test_6_concurrent_connection_handling
+FAILED tests/stress/test_failure_scenarios.py::TestDataCorruptionScenarios::test_10_invalid_json_handling
+FAILED tests/stress/test_failure_scenarios.py::TestDataCorruptionScenarios::test_11_sql_injection_protection
+FAILED tests/stress/test_failure_scenarios.py::TestDataCorruptionScenarios::test_12_extreme_payload_sizes
+============ 10 failed, 40 passed, 5 skipped in 336.04s (0:05:36) =============

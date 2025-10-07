@@ -251,13 +251,13 @@ uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 # Install Node.js dependencies
 npm install
 
-# Start Next.js development server
+# Start Next.js development server  
 npm run dev
 ```
 
 ### 7. Access Dashboards
-- **Main Dashboard**: http://localhost:3001/dashboard
-- **City Planner Tools**: http://localhost:3001/city-planner
+- **Real-Time Predictions Dashboard**: http://localhost:3000/predictions
+- **City Planner Tools**: http://localhost:3000/city-planner
 - **API Documentation**: http://localhost:8000/docs
 - **Kafka UI**: http://localhost:8080
 - **HDFS NameNode**: http://localhost:9870

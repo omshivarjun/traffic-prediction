@@ -47,7 +47,9 @@ coverage>=7.2.0
 # Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+bcrypt<4.0.0  # Pin to 3.x for passlib compatibility
 python-multipart>=0.0.6
+slowapi>=0.1.9
 
 # Caching
 redis>=4.6.0

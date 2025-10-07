@@ -1,33 +1,44 @@
-# ========================================
-# METR-LA TRAFFIC PREDICTION - .gitignore
-# ========================================
-# Optimized for GitHub repository size reduction
-# Excludes large files, dependencies, and generated content
+# ==============================================
+# Traffic Prediction System - Git Ignore
+# ==============================================
 
-# ==========================================
-# DEPENDENCIES & PACKAGE MANAGERS
-# ==========================================
-# Node.js dependencies (482MB+)
-/node_modules/
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-package-lock.json
-yarn.lock
+# ==============================================
+# SECURITY - SENSITIVE FILES (CRITICAL!)
+# ==============================================
+# Environment files with credentials
+.env
+!.env.template
+!.env.example
 
-# Python virtual environments (1GB+)
-.venv/
-venv/
-env/
-ENV/
+# Docker secrets directory
+secrets/
+*.secret
+
+# SSL/TLS certificates and keys
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+certs/
+
+# Private keys
+id_rsa
+id_dsa
+*.ppk
+
+# ==============================================
+# PYTHON
+# ==============================================
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -41,242 +52,167 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
-# ==========================================
-# BUILD & GENERATED FILES
-# ==========================================
-# Next.js build files (112MB+)
-/.next/
-/out/
-.next/
+# PyInstaller
+*.manifest
+*.spec
 
-# Production builds
-/build/
-/dist/
-*.tsbuildinfo
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
 
-# TypeScript
-next-env.d.ts
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
 
-# ==========================================
-# DATA FILES & DATASETS
-# ==========================================
-# Large datasets and processed data (13MB+)
-/data/raw/metr-la/
-/data/processed/*.csv
-/data/metr-la/
-*.pkl
-*.joblib
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
 
-# Keep only sample/metadata files
-!/data/raw/metr_la_sensor_metadata.csv
-!/data/raw/sample_dataset_summary.json
-!/data/processed/preprocessing_metadata.json
-
-# ==========================================
-# DOCKER & INFRASTRUCTURE
-# ==========================================
-# Docker volumes and data
-docker-compose.override.yml
-.docker/
-volumes/
-
-# Hadoop & HDFS data
-hadoop_namenode/
-hadoop_datanode/
-hadoop_historyserver/
-
-# Database data
-postgres_data/
-hive_metastore_postgresql/
-
-# Kafka data
-zookeeper_data/
-zookeeper_datalog/
-kafka_connect_data/
-
-# ==========================================
-# LOGS & TEMPORARY FILES
-# ==========================================
-# Application logs
-/logs/
-*.log
-*.log.*
-dev-debug.log
+# ==============================================
+# NODE.JS / NEXT.JS
+# ==============================================
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Test coverage
-/coverage/
+# Next.js build output
+.next/
+out/
 
-# ==========================================
-# ENVIRONMENT & SECRETS
-# ==========================================
-# Environment files (contain secrets)
-.env
-.env.*
-!.env.example
+# Next.js cache
+.next/cache/
 
-# Configuration with secrets
-producer_config.ini
-kafka.properties
-ml.properties
+# ==============================================
+# DOCKER
+# ==============================================
+# Docker volumes (persistent data)
+volumes/
+data/
 
-# ==========================================
-# EDITOR & IDE FILES
-# ==========================================
-# VSCode
+# Docker Compose override files (local dev customizations)
+docker-compose.override.yml
+
+# ==============================================
+# IDE / EDITOR
+# ==============================================
+# VS Code
 .vscode/
-*.code-workspace
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
-# JetBrains IDEs
+# PyCharm
 .idea/
-*.iml
-*.ipr
-*.iws
 
-# Cursor AI Editor
-.cursor/
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
 
-# Other editors
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.project
-.settings/
+# Vim
+*.swp
+*.swo
+*~
 
-# ==========================================
-# AI ASSISTANT RULES & CONFIGS
-# ==========================================
-# AI coding assistant rules (exclude from repo)
-.clinerules/
-.kilocode/
-.roo/
-.windsurf/
-.cursor/rules/
-.kiro/
-.qoder/
-.augment/
-.trae/
-
-# Task management (can be large)
-.taskmaster/tasks/
-.taskmaster/reports/
-.taskmaster/docs/research/
-
-# ==========================================
-# OPERATING SYSTEM FILES
-# ==========================================
+# ==============================================
+# OPERATING SYSTEM
+# ==============================================
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
 ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
-[Dd]esktop.ini
+Desktop.ini
 $RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
 
 # Linux
-*~
-.fuse_hidden*
-.directory
 .Trash-*
-.nfs*
 
-# ==========================================
-# SECURITY & CERTIFICATES
-# ==========================================
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
+# ==============================================
+# LOGS
+# ==============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# ==========================================
-# TEMPORARY & CACHE FILES
-# ==========================================
-# General temp files
+# ==============================================
+# DATABASE
+# ==============================================
+# SQLite databases (if used for testing)
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL backups
+*.dump
+*.sql.gz
+
+# ==============================================
+# BIG DATA / HADOOP
+# ==============================================
+# HDFS data
+hadoop-data/
+hdfs-data/
+
+# Hive warehouse
+warehouse/
+
+# Spark
+spark-warehouse/
+metastore_db/
+
+# ==============================================
+# MISC
+# ==============================================
+# Temporary files
 tmp/
 temp/
-.tmp/
-.temp/
 *.tmp
-*.temp
 
-# Cache directories
-.cache/
-.npm/
-.eslintcache
-.parcel-cache/
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
 
-# Vercel
-.vercel/
+# Backup files
+*.bak
+*.backup
 
-# ==========================================
-# TESTING & COVERAGE
-# ==========================================
-# Test results
-test-results/
-*.xml
-junit.xml
-coverage.xml
-
-# E2E test artifacts
-/test-results/
-/playwright-report/
-/playwright/.cache/
-
-# ==========================================
-# JUPYTER NOTEBOOKS
-# ==========================================
-.ipynb_checkpoints/
-*/.ipynb_checkpoints/*
-
-# ==========================================
-# KEEP IMPORTANT FILES
-# ==========================================
-# Force include important files that might be excluded
-!README.md
-!docker-compose.yml
-!Dockerfile*
-!requirements*.txt
-!package.json
-!tsconfig.json
-!next.config.*
-!jest.config.*
-!eslint.config.*
-!postcss.config.*
-!/scripts/
-!/schemas/
-!/config/
-!/hadoop-configs/
-!/connectors/
+# ==============================================
+# AI CODING ASSISTANTS (Keep Byterover Rules)
+# ==============================================
+.clinerules/byterover-rules.md
+.kilocode/rules/byterover-rules.md
+.roo/rules/byterover-rules.md
+.windsurf/rules/byterover-rules.md
+.cursor/rules/byterover-rules.mdc
+.kiro/steering/byterover-rules.md
+.qoder/rules/byterover-rules.md
+.augment/rules/byterover-rules.md

@@ -21,7 +21,7 @@ from typing import Dict, Any, List, Optional, Union
 from uuid import UUID
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Query, Path, BackgroundTasks
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Query, Path, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -29,6 +29,9 @@ from fastapi.openapi.utils import get_openapi
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func, desc
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from .config import get_settings
 from .database import get_db, db_manager, initialize_database, health_checker
@@ -42,8 +45,14 @@ from .kafka_integration import (
     initialize_kafka, shutdown_kafka, traffic_streamer, 
     prediction_streamer, alert_streamer, streaming_health
 )
+from .kafka_consumer import kafka_consumer
 from .logging_config import RequestLoggingMiddleware, api_logger, LoggingConfig
 from .websocket_manager import WebSocketManager
+from .security_headers import SecurityHeadersMiddleware, RateLimitHeaderMiddleware, log_security_headers_enabled
+
+# Import authentication endpoints
+from .auth import router as auth_router, get_current_user, get_current_active_user, require_role
+from .security import User  # Import User model for type hints
 
 # Import ML endpoints
 try:
@@ -75,6 +84,10 @@ async def lifespan(app: FastAPI):
         await initialize_kafka()
         api_logger.info("Kafka streaming initialized")
         
+        # Start Kafka consumer for DB writes
+        await kafka_consumer.start()
+        api_logger.info("Kafka consumer started for database writes")
+        
         # Initialize WebSocket manager
         websocket_manager.initialize()
         api_logger.info("WebSocket manager initialized")
@@ -99,6 +112,7 @@ async def lifespan(app: FastAPI):
     api_logger.info("Shutting down FastAPI Traffic Prediction API")
     
     try:
+        await kafka_consumer.stop()
         await shutdown_kafka()
         await db_manager.close()
         await websocket_manager.close()
@@ -118,6 +132,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+api_logger.info(f"Rate limiting configured: {settings.rate_limit_per_minute}/min, {settings.rate_limit_per_hour}/hour")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -126,6 +146,11 @@ app.add_middleware(
     allow_methods=settings.allow_methods,
     allow_headers=settings.allow_headers
 )
+
+# Add security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitHeaderMiddleware)
+log_security_headers_enabled()
 
 # Add request logging middleware
 app.add_middleware(RequestLoggingMiddleware)
@@ -140,13 +165,18 @@ if ML_ENDPOINTS_AVAILABLE:
 else:
     api_logger.warning("ML endpoints not included - ML libraries not available")
 
+# Include authentication router
+app.include_router(auth_router)
+api_logger.info("Authentication endpoints included at /auth")
+
 
 # =====================================================
 # ROOT AND HEALTH CHECK ENDPOINTS
 # =====================================================
 
 @app.get("/", tags=["System"])
-async def root():
+@limiter.limit("20/minute")
+async def root(request: Request):
     """Root endpoint with API information"""
     return {
         "message": "Traffic Prediction API",
@@ -166,7 +196,8 @@ async def root():
 
 
 @app.get("/health", tags=["System"])
-async def health_check():
+@limiter.limit("60/minute")
+async def health_check(request: Request):
     """Comprehensive health check endpoint"""
     health_status = {
         "status": "healthy",
@@ -204,7 +235,9 @@ async def health_check():
 # =====================================================
 
 @app.get("/api/traffic/current", response_model=List[TrafficReadingResponse], tags=["Traffic Data"])
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def get_current_traffic(
+    request: Request,
     sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
     limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
     db: Session = Depends(get_db)
@@ -237,11 +270,14 @@ async def get_current_traffic(
 
 
 @app.get("/api/traffic/historical/{date}", response_model=PaginatedResponse, tags=["Traffic Data"])
+@limiter.limit("200/minute")  # Higher limit for authenticated users
 async def get_historical_traffic(
+    request: Request,
     date: str = Path(..., description="Date in YYYY-MM-DD format"),
     sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(50, ge=1, le=500, description="Page size"),
+    current_user: User = Depends(get_current_active_user),  # Requires authentication
     db: Session = Depends(get_db)
 ):
     """Get historical traffic data for a specific date"""
@@ -291,9 +327,12 @@ async def get_historical_traffic(
 
 
 @app.get("/api/traffic/sensor/{sensor_id}", response_model=List[TrafficReadingResponse], tags=["Traffic Data"])
+@limiter.limit("150/minute")
 async def get_sensor_traffic(
+    request: Request,
     sensor_id: str = Path(..., description="Sensor ID"),
     hours: int = Query(24, ge=1, le=168, description="Hours of data to retrieve"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get traffic data for a specific sensor"""
@@ -322,7 +361,12 @@ async def get_sensor_traffic(
 
 
 @app.get("/api/traffic/statistics", response_model=TrafficStatistics, tags=["Traffic Data"])
-async def get_traffic_statistics(db: Session = Depends(get_db)):
+@limiter.limit("150/minute")
+async def get_traffic_statistics(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Get traffic system statistics"""
     try:
         today = datetime.utcnow().date()
@@ -377,10 +421,13 @@ async def get_traffic_statistics(db: Session = Depends(get_db)):
 # =====================================================
 
 @app.get("/api/predictions/latest", response_model=List[PredictionResponse], tags=["Predictions"])
+@limiter.limit("150/minute")
 async def get_latest_predictions(
+    request: Request,
     sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
     horizon: Optional[int] = Query(None, description="Filter by prediction horizon in minutes"),
     limit: int = Query(100, ge=1, le=1000, description="Number of predictions to return"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get latest traffic predictions"""
@@ -413,10 +460,13 @@ async def get_latest_predictions(
 
 
 @app.get("/api/predictions/accuracy", response_model=List[ModelMetricResponse], tags=["Predictions"])
+@limiter.limit("100/minute")
 async def get_prediction_accuracy(
+    request: Request,
     model_name: Optional[str] = Query(None, description="Filter by model name"),
     horizon: Optional[int] = Query(None, description="Filter by prediction horizon"),
     days: int = Query(7, ge=1, le=30, description="Days of metrics to retrieve"),
+    current_user: User = Depends(require_role("user")),
     db: Session = Depends(get_db)
 ):
     """Get prediction accuracy metrics"""
@@ -444,10 +494,13 @@ async def get_prediction_accuracy(
 
 
 @app.post("/api/predictions/generate", tags=["Predictions"])
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def generate_predictions(
+    request: Request,
     sensor_id: str = Query(..., description="Sensor ID for prediction"),
     horizons: List[int] = Query([15, 30, 60], description="Prediction horizons in minutes"),
     background_tasks: BackgroundTasks = BackgroundTasks(),
+    current_user: User = Depends(require_role("admin")),  # Admin only
     db: Session = Depends(get_db)
 ):
     """Generate on-demand predictions for a sensor"""
@@ -499,9 +552,12 @@ async def _generate_sensor_predictions(sensor_id: str, horizons: List[int]):
 # =====================================================
 
 @app.get("/api/analytics/congestion", response_model=AnalyticsResponse, tags=["Analytics"])
+@limiter.limit("150/minute")
 async def get_congestion_analytics(
+    request: Request,
     hours: int = Query(24, ge=1, le=168, description="Hours of data to analyze"),
     sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get traffic congestion analytics"""
@@ -584,9 +640,12 @@ async def get_congestion_analytics(
 
 
 @app.get("/api/analytics/patterns", response_model=AnalyticsResponse, tags=["Analytics"])
+@limiter.limit("150/minute")
 async def get_pattern_analytics(
+    request: Request,
     days: int = Query(7, ge=1, le=30, description="Days of data to analyze"),
     sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get traffic pattern analytics (daily/hourly patterns)"""
@@ -717,9 +776,12 @@ async def get_pattern_analytics(
 
 
 @app.get("/api/analytics/trends", response_model=AnalyticsResponse, tags=["Analytics"])
+@limiter.limit("150/minute")
 async def get_trend_analytics(
+    request: Request,
     days: int = Query(30, ge=7, le=90, description="Days of data to analyze"),
     sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get traffic trend analytics (long-term trends)"""
@@ -846,7 +908,9 @@ async def websocket_real_time_endpoint(websocket: WebSocket):
 # =====================================================
 
 @app.get("/api/sensors", response_model=List[SensorResponse], tags=["System"])
+@limiter.limit("50/minute")
 async def get_sensors(
+    request: Request,
     status: Optional[str] = Query(None, description="Filter by sensor status"),
     limit: int = Query(100, ge=1, le=1000, description="Number of sensors to return"),
     db: Session = Depends(get_db)
@@ -869,7 +933,9 @@ async def get_sensors(
 
 
 @app.get("/api/incidents", response_model=List[TrafficIncidentResponse], tags=["System"])
+@limiter.limit("50/minute")
 async def get_incidents(
+    request: Request,
     status: Optional[str] = Query("active", description="Filter by incident status"),
     hours: int = Query(24, ge=1, le=168, description="Hours of incidents to retrieve"),
     db: Session = Depends(get_db)

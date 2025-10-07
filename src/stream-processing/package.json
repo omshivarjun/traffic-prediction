@@ -2,17 +2,16 @@
   "name": "traffic-prediction-stream-processing",
   "version": "1.0.0",
   "description": "Stream processing pipeline for traffic prediction system",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node index.js",
+    "start:docker": "node index.js",
     "dev": "ts-node index.ts",
     "test": "jest"
   },
   "dependencies": {
-    "avro-schema-registry": "^3.0.0",
-    "kafka-streams": "^5.0.0",
-    "node-rdkafka": "^2.15.0"
+    "kafkajs": "^2.2.4"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
