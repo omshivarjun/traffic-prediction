@@ -54,6 +54,7 @@ const flattenMetrLaFormat = (event) => {
   if (event.traffic_data && event.location && event.weather) {
     return {
       sensor_id: event.location.segment_id || event.location.sensor_id || 'unknown',
+      segment_id: event.location.segment_id || event.location.sensor_id || 'unknown',
       timestamp: event.timestamp,
       speed: event.traffic_data.speed_mph,
       volume: event.traffic_data.volume_vehicles_per_hour,
@@ -67,8 +68,12 @@ const flattenMetrLaFormat = (event) => {
       temperature: event.weather.temperature_fahrenheit || null
     };
   }
-  // Already flat format
-  return event;
+  // Already flat format - preserve segment_id and sensor_id
+  return {
+    ...event,
+    sensor_id: event.sensor_id || event.segment_id || 'unknown',
+    segment_id: event.segment_id || event.sensor_id || 'unknown'
+  };
 };
 
 // Validation function
@@ -171,8 +176,8 @@ const generatePrediction = (event) => {
   else category = 'severe_congestion';
   
   return {
-    prediction_id: `pred_${event.sensor_id}_${Date.now()}`,
-    segment_id: event.sensor_id,
+    prediction_id: `pred_${event.segment_id || event.sensor_id}_${Date.now()}`,
+    segment_id: event.segment_id || event.sensor_id,
     prediction_timestamp: new Date().toISOString(),
     horizon_minutes: 5,
     target_timestamp: new Date(Date.now() + 5 * 60000).toISOString(), // 5 minutes ahead

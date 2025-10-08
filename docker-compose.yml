@@ -226,7 +226,7 @@ services:
       GROUP_ID: stream-processor-group-v2  # Changed to v2 to force reading from beginning
       CLIENT_ID: stream-processor-client
       INPUT_TOPIC: traffic-raw
-      OUTPUT_TOPIC: traffic-events
+      OUTPUT_TOPIC: traffic-predictions
       HEALTH_PORT: 3001
       NODE_ENV: production
     ports:

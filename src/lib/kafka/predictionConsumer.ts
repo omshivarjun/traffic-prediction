@@ -15,16 +15,14 @@ export interface TrafficPrediction {
   prediction_time: string;
   speed_diff: number;
   category: 'free_flow' | 'moderate_traffic' | 'heavy_traffic' | 'severe_congestion';
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
 }
 
 class PredictionConsumer {
   private kafka: Kafka;
   private consumer: Consumer | null = null;
   private isConnected = false;
+  private isConnecting = false;
+  private connectionPromise: Promise<void> | null = null;
   private listeners: Set<(prediction: TrafficPrediction) => void> = new Set();
   private latestPredictions: Map<string, TrafficPrediction> = new Map();
 
@@ -52,24 +50,43 @@ class PredictionConsumer {
    */
   async start(): Promise<void> {
     if (this.isConnected) {
-      console.log('⚠️ Prediction consumer already started');
+      console.log('✅ Consumer already connected and running');
       return;
     }
 
-    // Prevent multiple simultaneous start attempts
-    if (this.consumer) {
-      console.log('⚠️ Consumer already exists, waiting for connection...');
-      // Wait up to 10 seconds for existing consumer to connect
-      for (let i = 0; i < 20; i++) {
-        if (this.isConnected) {
-          return;
-        }
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      throw new Error('Consumer connection timeout');
+    // If another connection is in progress, wait for it
+    if (this.isConnecting && this.connectionPromise) {
+      console.log('⏳ Waiting for existing connection attempt...');
+      await this.connectionPromise;
+      return;
     }
 
+    // Set connecting flag and create promise
+    this.isConnecting = true;
+    this.connectionPromise = this._doConnect();
+    
     try {
+      await this.connectionPromise;
+    } finally {
+      this.connectionPromise = null;
+    }
+  }
+
+  /**
+   * Internal method to perform the actual connection
+   */
+  private async _doConnect(): Promise<void> {
+    const fs = require('fs');
+    const logPath = 'c:\\traffic-prediction\\consumer-debug.log';
+    const log = (msg: string) => {
+      const timestamp = new Date().toISOString();
+      fs.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
+      console.log(msg);
+    };
+    
+    try {
+      log('🔌 Starting _doConnect...');
+      
       this.consumer = this.kafka.consumer({
         groupId: 'nextjs-prediction-consumer-group',
         sessionTimeout: 60000,
@@ -81,30 +98,54 @@ class PredictionConsumer {
         },
       });
 
-      console.log('🔌 Connecting to Kafka...');
+      log('🔌 Connecting to Kafka...');
       await this.consumer.connect();
-      console.log('✅ Connected to Kafka for predictions');
+      log('✅ Connected to Kafka for predictions');
 
-      // Wait a moment after connect to ensure broker is ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Add error listeners
+      this.consumer.on('consumer.disconnect', () => {
+        log('⚠️  Consumer disconnected from Kafka');
+        this.isConnected = false;
+      });
 
-      console.log('📝 Subscribing to traffic-predictions topic...');
+      this.consumer.on('consumer.crash', (error: any) => {
+        log(`❌ Consumer crashed: ${error.error?.message || 'Unknown error'}`);
+        log(`Stack: ${error.error?.stack || 'No stack'}`);
+        this.isConnected = false;
+      });
+
+      this.consumer.on('consumer.group_join', (payload: any) => {
+        log(`✅ Joined consumer group: ${JSON.stringify(payload)}`);
+      });
+
+      this.consumer.on('consumer.connect', () => {
+        log('✅ Consumer connected event fired');
+      });
+
+      log('📝 Subscribing to traffic-predictions topic...');
       await this.consumer.subscribe({
         topic: 'traffic-predictions',
-        fromBeginning: false,
+        fromBeginning: true,  // Read from beginning to get existing predictions
       });
-      console.log('✅ Subscribed to topic');
+      log('✅ Subscribed to topic');
 
+      // Set connected state BEFORE run() since run() never returns (it keeps running)
+      this.isConnected = true;
+      this.isConnecting = false;
+      log('🚀 Prediction consumer started successfully');
+
+      // Start consuming messages (this runs indefinitely)
+      log('▶️  Starting consumer.run()...');
       await this.consumer.run({
         eachMessage: async (payload: EachMessagePayload) => {
+          log(`🎯 eachMessage callback triggered!`);
           await this.handleMessage(payload);
         },
       });
-
-      this.isConnected = true;
-      console.log('🚀 Prediction consumer started successfully');
     } catch (error) {
       console.error('❌ Error starting prediction consumer:', error);
+      this.isConnecting = false;
+      
       // Clean up failed consumer
       if (this.consumer) {
         try {
@@ -121,35 +162,75 @@ class PredictionConsumer {
   /**
    * Handle incoming Kafka message
    */
-  private async handleMessage({ message }: EachMessagePayload): Promise<void> {
+  private async handleMessage({ message, partition }: EachMessagePayload): Promise<void> {
+    const fs = require('fs');
+    const logPath = 'c:\\traffic-prediction\\consumer-debug.log';
+    
+    const log = (msg: string) => {
+      const timestamp = new Date().toISOString();
+      const logLine = `[${timestamp}] ${msg}\n`;
+      fs.appendFileSync(logPath, logLine);
+      console.log(msg);
+    };
+    
     try {
+      log(`📨 RECEIVED MESSAGE: partition=${partition}, offset=${message.offset}`);
+      
       if (!message.value) {
-        console.warn('⚠️ Received null message value');
+        log('⚠️ Received null message value');
         return;
       }
 
       const predictionData = JSON.parse(message.value.toString());
+      log(`📦 Parsed data: ${JSON.stringify(predictionData).substring(0, 100)}`);
+      
+      // Calculate speed difference and category
+      const currentSpeed = predictionData.actual_speed || predictionData.current_speed || 0;
+      const predictedSpeed = predictionData.predicted_speed || 0;
+      const currentVolume = predictionData.actual_volume || predictionData.current_volume || 0;
+      const speedDiff = predictedSpeed - currentSpeed;
+      
+      log(`📊 Speeds: current=${currentSpeed}, predicted=${predictedSpeed}, diff=${speedDiff}`);
+      
+      // Determine traffic category based on predicted speed
+      let category: 'free_flow' | 'moderate_traffic' | 'heavy_traffic' | 'severe_congestion';
+      if (predictedSpeed >= 60) {
+        category = 'free_flow';
+      } else if (predictedSpeed >= 45) {
+        category = 'moderate_traffic';
+      } else if (predictedSpeed >= 30) {
+        category = 'heavy_traffic';
+      } else {
+        category = 'severe_congestion';
+      }
+      
       const prediction: TrafficPrediction = {
         segment_id: predictionData.segment_id,
-        timestamp: predictionData.timestamp,
-        current_speed: predictionData.current_speed,
-        predicted_speed: predictionData.predicted_speed,
-        current_volume: predictionData.current_volume,
-        prediction_time: predictionData.prediction_time,
-        speed_diff: predictionData.speed_diff,
-        category: predictionData.category,
-        coordinates: predictionData.coordinates, // ✅ ADD COORDINATES FROM KAFKA MESSAGE
+        timestamp: typeof predictionData.timestamp === 'string' 
+          ? new Date(predictionData.timestamp).getTime() 
+          : predictionData.timestamp || Date.now(),
+        current_speed: currentSpeed,
+        predicted_speed: predictedSpeed,
+        current_volume: currentVolume,
+        prediction_time: predictionData.prediction_time 
+          ? new Date(predictionData.prediction_time).toISOString() 
+          : new Date().toISOString(),
+        speed_diff: speedDiff,
+        category: category,
       };
 
       // Store latest prediction for this segment
       this.latestPredictions.set(prediction.segment_id, prediction);
+      log(`💾 Stored prediction for ${prediction.segment_id}. Total cached: ${this.latestPredictions.size}`);
 
       // Notify all listeners
+      log(`📤 Notifying ${this.listeners.size} listener(s)`);
       this.listeners.forEach((listener) => {
         try {
           listener(prediction);
+          log(`✅ Listener notified successfully`);
         } catch (error) {
-          console.error('❌ Error in prediction listener:', error);
+          log(`❌ Error in prediction listener: ${error}`);
         }
       });
 
@@ -247,13 +328,18 @@ class PredictionConsumer {
 
 // Singleton instance
 let predictionConsumerInstance: PredictionConsumer | null = null;
+let instanceId = Math.random().toString(36).substring(7);
 
 /**
  * Get or create the singleton prediction consumer instance
  */
 export function getPredictionConsumer(): PredictionConsumer {
   if (!predictionConsumerInstance) {
+    instanceId = Math.random().toString(36).substring(7);
+    console.log(`🆕 Creating NEW consumer singleton instance: ${instanceId}`);
     predictionConsumerInstance = new PredictionConsumer();
+  } else {
+    console.log(`♻️ Reusing EXISTING consumer singleton instance: ${instanceId}`);
   }
   return predictionConsumerInstance;
 }
