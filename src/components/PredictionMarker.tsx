@@ -50,10 +50,10 @@ function formatCategory(category: string): string {
 
 export function PredictionMarker({ prediction, coordinates }: PredictionMarkerProps) {
   const markerColor = getCategoryColor(prediction.category);
-  const speedDiffColor = getSpeedDiffColor(prediction.speed_diff);
+  const speedDiffColor = getSpeedDiffColor(prediction.speed_diff ?? 0);
 
   // Calculate accuracy percentage (inverse of relative error)
-  const relativeError = Math.abs(prediction.speed_diff) / Math.max(prediction.current_speed, 1);
+  const relativeError = Math.abs(prediction.speed_diff ?? 0) / Math.max(prediction.current_speed, 1);
   const accuracy = Math.max(0, (1 - relativeError) * 100);
 
   return (
@@ -82,13 +82,13 @@ export function PredictionMarker({ prediction, coordinates }: PredictionMarkerPr
           <div className="space-y-2 mb-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Current Speed:</span>
-              <span className="font-semibold text-base">{prediction.current_speed.toFixed(1)} mph</span>
+              <span className="font-semibold text-base">{prediction.current_speed?.toFixed(1) ?? 'N/A'} mph</span>
             </div>
 
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Predicted Speed:</span>
               <span className="font-semibold text-base text-blue-600">
-                {prediction.predicted_speed.toFixed(1)} mph
+                {prediction.predicted_speed?.toFixed(1) ?? 'N/A'} mph
               </span>
             </div>
 
@@ -98,14 +98,14 @@ export function PredictionMarker({ prediction, coordinates }: PredictionMarkerPr
                 className="font-semibold text-base"
                 style={{ color: speedDiffColor }}
               >
-                {prediction.speed_diff > 0 ? '+' : ''}
-                {prediction.speed_diff.toFixed(1)} mph
+                {(prediction.speed_diff ?? 0) > 0 ? '+' : ''}
+                {prediction.speed_diff?.toFixed(1) ?? 'N/A'} mph
               </span>
             </div>
 
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Volume:</span>
-              <span className="font-semibold text-base">{prediction.current_volume} vehicles</span>
+              <span className="font-semibold text-base">{prediction.current_volume ?? 0} vehicles</span>
             </div>
           </div>
 

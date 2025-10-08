@@ -1,227 +1,122 @@
-# ==============================================
-# Traffic Prediction System - Git Ignore
-# ==============================================
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
 
-# ==============================================
-# SECURITY - SENSITIVE FILES (CRITICAL!)
-# ==============================================
-# Environment files with credentials
+# Environment variables
 .env
 .env.local
-!.env.template
-!.env.example
+.env.*.local
+.env.development
+.env.production
+.env.template
+.env.traffic.example
+*.env
 
-# Docker secrets directory
-secrets/
-*.secret
-
-# SSL/TLS certificates and keys
-*.key
-*.crt
-*.pem
-*.p12
-*.pfx
-certs/
-
-# Private keys
-id_rsa
-id_dsa
-*.ppk
-
-# ==============================================
-# PYTHON
-# ==============================================
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
-
-# Virtual environments
-venv/
-ENV/
-env/
-.venv
-
-# ==============================================
-# NODE.JS / NEXT.JS
-# ==============================================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Next.js build output
-.next/
-out/
-
-# Next.js cache
-.next/cache/
-
-# ==============================================
-# DOCKER
-# ==============================================
-# Docker volumes (persistent data)
-volumes/
-data/
-
-# Docker Compose override files (local dev customizations)
-docker-compose.override.yml
-
-# ==============================================
-# IDE / EDITOR
-# ==============================================
-# VS Code
+# IDE and Editor files
 .vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# PyCharm
 .idea/
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# Vim
 *.swp
 *.swo
 *~
-
-# ==============================================
-# OPERATING SYSTEM
-# ==============================================
-# macOS
 .DS_Store
-.AppleDouble
-.LSOverride
+.kilocode/
+.cursor/
+.windsurf/
+.roo/
+.kiro/
+.qoder/
+.augment/
+.clinerules/
 
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
 
-# Linux
-.Trash-*
+# Testing
+.pytest_cache/
+coverage/
+*.cover
+.hypothesis/
+.coverage
+htmlcov/
+test_results/
+*.log
 
-# ==============================================
-# LOGS
-# ==============================================
+# Logs
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
+server.log
+sse-test.log
 
-# ==============================================
-# DATABASE
-# ==============================================
-# SQLite databases (if used for testing)
-*.db
-*.sqlite
-*.sqlite3
-
-# PostgreSQL backups
-*.dump
-*.sql.gz
-
-# ==============================================
-# BIG DATA / HADOOP
-# ==============================================
-# HDFS data
-hadoop-data/
-hdfs-data/
-
-# Hive warehouse
-warehouse/
-
-# Spark
-spark-warehouse/
-metastore_db/
-
-# ML Models (Large files - use Git LFS if needed)
-temp_models/
-*.joblib
-*.pkl
-*.h5
-*.onnx
-*.pmml
-
-# ==============================================
-# MISC
-# ==============================================
 # Temporary files
-tmp/
-temp/
+temp_*/
 *.tmp
-
-# Compressed files
-*.zip
-*.tar.gz
-*.rar
-
-# Backup files
+*.temp
+*.cache
 *.bak
-*.backup
+connectivity_final_results.json
+connectivity_test_results.json
+todo7_test_results.txt
+test-event.json
+temp_sample.jsonl
+REALTIME_STATUS.txt
+TASK_6_COMPLETE.txt
 
-# ==============================================
-# AI CODING ASSISTANTS (Keep Byterover Rules)
-# ==============================================
-.clinerules/byterover-rules.md
-.kilocode/rules/byterover-rules.md
-.roo/rules/byterover-rules.md
-.windsurf/rules/byterover-rules.md
-.cursor/rules/byterover-rules.mdc
-.kiro/steering/byterover-rules.md
-.qoder/rules/byterover-rules.md
-.augment/rules/byterover-rules.md
+# Task management (keep structure, ignore generated)
+.taskmaster/
+
+# Data files (large data should not be in git)
+data/raw/*.csv
+data/processed/*.csv
+data/processed/*.parquet
+*.h5
+*.hdf5
+notebooks/*.ipynb_checkpoints/
+
+# Model files (large ML models)
+temp_models/
+*.pkl
+*.joblib
+*.model
+*.pt
+*.pth
+*.ckpt
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Hadoop/Spark local files
+metastore_db/
+derby.log
+spark-warehouse/
+
+# AI Assistant Rules (optional - uncomment to ignore)
+# .clinerules/byterover-rules.md
+# .kilocode/rules/byterover-rules.md
+# .roo/rules/byterover-rules.md
+# .windsurf/rules/byterover-rules.md
+# .cursor/rules/byterover-rules.mdc
+# .kiro/steering/byterover-rules.md
+# .qoder/rules/byterover-rules.md
+# .augment/rules/byterover-rules.md

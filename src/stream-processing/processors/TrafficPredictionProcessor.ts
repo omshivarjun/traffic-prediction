@@ -12,14 +12,14 @@ export class TrafficPredictionProcessor extends BaseProcessor {
   protected async buildTopology(): Promise<void> {
     console.log('Building TrafficPredictionProcessor topology...');
     
-    // Create consumer stream for enriched traffic aggregates
-    const enrichedAggregatesStream = this.createConsumerStream('topic.output.enriched-aggregates', 'enriched-aggregates-consumer');
+    // Create consumer stream for processed traffic aggregates
+    const enrichedAggregatesStream = this.createConsumerStream('topic.output.enriched-aggregates', 'processed-aggregates-consumer');
     
     // Create producer stream for traffic predictions
-    const trafficPredictionsStream = this.createProducerStream('topic.output.traffic-predictions', 'traffic-predictions-stream');
+    const trafficPredictionsStream = this.createProducerStream('topic.output.predictions', 'traffic-predictions-stream');
     
     // Create producer stream for traffic alerts
-    const trafficAlertsStream = this.createProducerStream('topic.output.traffic-alerts', 'traffic-alerts-stream');
+    const trafficAlertsStream = this.createProducerStream('topic.output.alerts', 'traffic-alerts-stream');
     
     // Get prediction configuration
     const predictionHorizons = (this.config['prediction.horizons.minutes'] || '15,30,60').split(',').map(Number);

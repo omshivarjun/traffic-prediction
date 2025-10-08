@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
   const consumer = getPredictionConsumer();
 
   // Start consumer if not already running
+  // Multiple SSE connections will share the same consumer instance
   if (!consumer.isRunning()) {
     try {
       console.log('🔌 Starting prediction consumer for SSE stream...');
@@ -53,6 +54,8 @@ export async function GET(request: NextRequest) {
         },
       });
     }
+  } else {
+    console.log('♻️ Reusing existing prediction consumer for new SSE connection');
   }
 
   // Create SSE stream

@@ -1,0 +1,1 @@
+{"event_id":"E2E_TEST_001","sensor_id":"LA_405_N_001","timestamp":"2025-10-05T14:30:00","location":{"highway":"I-405","direction":"N","lanes":4},"traffic_data":{"speed_mph":45.5,"volume_vehicles_per_hour":2500,"occupancy_percentage":68.2,"congestion_level":3},"weather":{"condition":"clear","temperature_f":72.0,"precipitation":false},"hour":14,"day_of_week":6,"is_weekend":true}

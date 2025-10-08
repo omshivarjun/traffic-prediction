@@ -1,0 +1,446 @@
+{
+  "projectName": "METR-LA Traffic Prediction System",
+  "version": "1.0.0",
+  "description": "Production-ready real-time traffic prediction pipeline implementing complete workflow from CSV ingestion to dashboard visualization",
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Phase 1: Data Ingestion Pipeline",
+      "description": "Implement complete CSV to Kafka data ingestion with proper validation, topic routing, and error handling",
+      "status": "in-progress",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Build robust data ingestion pipeline that reads METR-LA CSV files, validates data quality, transforms to JSON, and sends to correct Kafka topics with proper partitioning and schema validation",
+      "testStrategy": "Verify 99+ valid records sent to traffic-raw topic, confirm negative speed filtering works, validate JSON schema compliance",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Fix CSV to Kafka producer script",
+          "description": "Update send-csv-events.ps1 to send to traffic-raw topic (not traffic-events) and ensure proper validation",
+          "status": "done",
+          "details": "Script currently sends to traffic-events but stream processor consumes from traffic-raw. Need to update topic parameter and verify data flows correctly."
+        },
+        {
+          "id": 2,
+          "title": "Implement data validation layer",
+          "description": "Add comprehensive validation for speed, coordinates, timestamps, and sensor IDs",
+          "status": "done",
+          "details": "Currently only validates negative speeds. Need to add: coordinate bounds checking (LA area), timestamp format validation, sensor ID format validation, volume/occupancy range checks."
+        },
+        {
+          "id": 3,
+          "title": "Create Python-based producer for production",
+          "description": "Build pandas-based producer with batch processing (10-20 records/batch) as documented in workflow",
+          "status": "not-started",
+          "details": "PowerShell script is temporary solution. Need production Python script using kafka-python library with: pandas CSV reading, batch processing, Avro schema integration, error recovery, metrics tracking."
+        },
+        {
+          "id": 4,
+          "title": "Implement Avro schema validation",
+          "description": "Integrate with schema registry and validate all messages against traffic-event.avsc schema",
+          "status": "not-started",
+          "details": "Messages currently sent as plain JSON. Need to: register schemas with schema registry (port 8082), use Avro serialization, validate against schema before sending, handle schema evolution."
+        },
+        {
+          "id": 5,
+          "title": "Add throughput monitoring and metrics",
+          "description": "Implement 5-8 records/second throughput tracking and alerting",
+          "status": "not-started",
+          "details": "Add: records/second counter, batch size optimization, backpressure handling, latency tracking, Prometheus metrics export for monitoring dashboard."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Phase 2: Stream Processing Pipeline",
+      "description": "Fix and enhance Node.js stream processor to consume from traffic-raw, transform data, and output to traffic-events topic",
+      "status": "in-progress",
+      "priority": "high",
+      "dependencies": [1],
+      "details": "Stream processor must consume from traffic-raw (5 partitions), apply transformations, validate data, and output to traffic-events. Currently processing 1004+ messages but needs enhancements for production",
+      "testStrategy": "Verify messages flow from traffic-raw to traffic-events, validate transformations applied correctly, confirm 30-second micro-batch processing",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Verify consumer group configuration",
+          "description": "Ensure stream-processor-group-v2 correctly reads from earliest offset",
+          "status": "done",
+          "details": "Consumer group was reset to v2 to start from beginning. Verify offsets are being committed properly and lag is zero after processing all messages."
+        },
+        {
+          "id": 2,
+          "title": "Implement windowing operations",
+          "description": "Add 5-minute tumbling windows for aggregations as per workflow documentation",
+          "status": "not-started",
+          "details": "Current implementation processes individual messages. Need to: implement time-based windows, calculate avg_speed per window, aggregate volume and occupancy, emit window results."
+        },
+        {
+          "id": 3,
+          "title": "Add Avro schema application",
+          "description": "Apply Avro schema validation and deserialization for incoming messages",
+          "status": "not-started",
+          "details": "Messages currently processed as JSON. Need to: fetch schemas from registry, deserialize Avro messages, validate schema compliance, handle schema evolution gracefully."
+        },
+        {
+          "id": 4,
+          "title": "Implement data quality validation",
+          "description": "Add comprehensive validation checks for data quality and completeness",
+          "status": "not-started",
+          "details": "Add validation for: missing fields, out-of-range values, duplicate messages, timestamp ordering, coordinate validity, sensor ID existence, data freshness checks."
+        },
+        {
+          "id": 5,
+          "title": "Add metrics and monitoring",
+          "description": "Implement message processing metrics, lag tracking, and error rate monitoring",
+          "status": "not-started",
+          "details": "Expose metrics via /metrics endpoint: messages processed, processing latency, consumer lag, error rate, throughput, memory usage. Integrate with Prometheus/Grafana."
+        },
+        {
+          "id": 6,
+          "title": "Write to HDFS for batch processing",
+          "description": "Store processed messages to HDFS for ML training pipeline",
+          "status": "not-started",
+          "details": "Stream processor must write to: /traffic-data/raw/year=YYYY/month=MM/day=DD/ for raw data, /traffic-data/processed/aggregates/ for windowed aggregates. Use Parquet format with partitioning."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Phase 3: Feature Engineering Pipeline",
+      "description": "Build feature engineering pipeline to transform raw traffic data into ML-ready features",
+      "status": "not-started",
+      "priority": "high",
+      "dependencies": [2],
+      "details": "Create Spark job that reads from HDFS, engineers time/spatial/traffic features, and stores to /traffic-data/processed/ml-features/ for model training",
+      "testStrategy": "Verify all features generated correctly: hour_sin, hour_cos, is_weekend, highway encoding, traffic_efficiency, variability, moving averages",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement time-based features",
+          "description": "Create hour_sin, hour_cos, day_of_week, is_weekend features from timestamps",
+          "status": "not-started",
+          "details": "Extract temporal features: hour_sin = sin(2π * hour/24), hour_cos = cos(2π * hour/24), day_of_week (0-6), is_weekend boolean, is_rush_hour boolean."
+        },
+        {
+          "id": 2,
+          "title": "Implement spatial features",
+          "description": "Create highway encoding, coordinate normalization, and location-based features",
+          "status": "not-started",
+          "details": "Spatial features: highway one-hot encoding, latitude/longitude normalization, distance to downtown, proximity to interchanges, road segment classification."
+        },
+        {
+          "id": 3,
+          "title": "Implement traffic-specific features",
+          "description": "Calculate traffic_efficiency, speed_variability, and congestion indicators",
+          "status": "not-started",
+          "details": "Traffic features: efficiency = speed/speed_limit, variability = std(speed) over 15min window, congestion_level = volume/capacity, occupancy_ratio."
+        },
+        {
+          "id": 4,
+          "title": "Implement historical features",
+          "description": "Create moving averages and historical trend features",
+          "status": "not-started",
+          "details": "Historical features: 15-min moving average speed, 1-hour moving average, speed_delta (change from previous reading), trend_indicator (increasing/decreasing)."
+        },
+        {
+          "id": 5,
+          "title": "Create feature storage pipeline",
+          "description": "Store engineered features to HDFS in ML-ready format",
+          "status": "not-started",
+          "details": "Write features to: /traffic-data/processed/ml-features/year=YYYY/month=MM/ in Parquet format with proper schema, data types, and partitioning for efficient ML training."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Phase 4: Machine Learning Training Pipeline",
+      "description": "Implement ML training pipeline with 3 algorithms (Linear Regression, Random Forest, Gradient Boosted Trees) achieving 99.96% accuracy",
+      "status": "not-started",
+      "priority": "high",
+      "dependencies": [3],
+      "details": "Create Spark MLlib pipeline that trains 3 models, performs cross-validation, evaluates performance, selects best model, and persists to HDFS with metadata",
+      "testStrategy": "Verify Random Forest achieves R²=0.9996, RMSE=0.752, MAE=0.289. Confirm models saved to /traffic-data/models/ with metadata",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement data loading and preparation",
+          "description": "Load features from HDFS, apply StandardScaler normalization, OneHotEncoder for categorical data",
+          "status": "not-started",
+          "details": "Load from /traffic-data/processed/ml-features/, apply StandardScaler to numerical features, OneHotEncoder to highway/direction, perform 80/20 temporal train/test split preserving time ordering."
+        },
+        {
+          "id": 2,
+          "title": "Implement Linear Regression baseline",
+          "description": "Train Linear Regression model as baseline with full evaluation metrics",
+          "status": "not-started",
+          "details": "Train Linear Regression for speed prediction, evaluate on test set, calculate R², RMSE, MAE, analyze feature coefficients for interpretability, save model and metrics."
+        },
+        {
+          "id": 3,
+          "title": "Implement Random Forest model",
+          "description": "Train Random Forest achieving 99.96% accuracy (R²=0.9996, RMSE=0.752)",
+          "status": "not-started",
+          "details": "Configure Random Forest: numTrees=100, maxDepth=20, perform hyperparameter tuning, extract feature importance (traffic_efficiency=81%), save 27.9MB model file."
+        },
+        {
+          "id": 4,
+          "title": "Implement Gradient Boosted Trees",
+          "description": "Train Gradient Boosted Trees achieving 99.92% accuracy (R²=0.9992, RMSE=1.061)",
+          "status": "not-started",
+          "details": "Configure GBT: maxIter=100, maxDepth=10, stepSize=0.1, perform hyperparameter tuning, compare with Random Forest, document when to use each model."
+        },
+        {
+          "id": 5,
+          "title": "Implement 5-fold cross-validation",
+          "description": "Perform temporal 5-fold cross-validation preserving time series structure",
+          "status": "not-started",
+          "details": "Implement time-series aware CV: split data into 5 folds chronologically, train on earlier folds, validate on later folds, calculate average metrics, detect overfitting."
+        },
+        {
+          "id": 6,
+          "title": "Implement model persistence and metadata",
+          "description": "Save models to /traffic-data/models/ with performance metrics and feature names",
+          "status": "not-started",
+          "details": "Save to HDFS: random_forest_speed.joblib (27.9MB), gradient_boosting_speed.joblib, linear_regression_speed.joblib, metadata.json with metrics/features/timestamp, transformers (scaler, encoder)."
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Phase 5: Real-time Prediction Service",
+      "description": "Build prediction service that consumes traffic-events from Kafka, applies trained models, and publishes predictions to traffic-predictions topic",
+      "status": "not-started",
+      "priority": "high",
+      "dependencies": [4],
+      "details": "Service loads models from HDFS, subscribes to traffic-events, engineers features in real-time, generates predictions with confidence intervals, publishes to traffic-predictions topic",
+      "testStrategy": "Verify predictions generated for 207 sensors every 5 minutes (2,484/hour), latency <5 seconds, predictions stored to HDFS and Kafka",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement model loading service",
+          "description": "Load Random Forest models and transformers from HDFS on service startup",
+          "status": "not-started",
+          "details": "Load from /traffic-data/models/: random_forest_speed.joblib, random_forest_congestion.joblib, StandardScaler, OneHotEncoder, feature names, verify model integrity, cache in memory."
+        },
+        {
+          "id": 2,
+          "title": "Implement real-time feature engineering",
+          "description": "Apply same feature engineering pipeline to streaming data",
+          "status": "not-started",
+          "details": "For each incoming event: extract time features, calculate traffic features, apply scaling/encoding, assemble feature vector, handle missing data gracefully, maintain feature consistency with training."
+        },
+        {
+          "id": 3,
+          "title": "Implement prediction generation",
+          "description": "Generate speed and congestion predictions with confidence intervals",
+          "status": "not-started",
+          "details": "For each event: predict next hour speed using Random Forest, predict congestion level, calculate confidence intervals from ensemble variance, add prediction metadata (timestamp, model version)."
+        },
+        {
+          "id": 4,
+          "title": "Implement Kafka output publisher",
+          "description": "Publish predictions to traffic-predictions topic with proper schema",
+          "status": "not-started",
+          "details": "Publish to traffic-predictions topic: prediction_id, sensor_id, timestamp, predicted_speed, predicted_congestion, confidence_score, model_version, use Avro schema, handle backpressure."
+        },
+        {
+          "id": 5,
+          "title": "Implement HDFS prediction storage",
+          "description": "Store predictions to /traffic-data/predictions/ for historical analysis",
+          "status": "not-started",
+          "details": "Write predictions to HDFS: /traffic-data/predictions/year=YYYY/month=MM/day=DD/hour=HH/ in Parquet format, partition by date/hour, compress for efficiency, maintain 30-day retention."
+        },
+        {
+          "id": 6,
+          "title": "Add performance monitoring",
+          "description": "Track prediction latency, throughput, accuracy, and model performance",
+          "status": "not-started",
+          "details": "Expose metrics: predictions/second, average latency, p95/p99 latency, feature engineering time, model inference time, prediction accuracy vs actual (when available), error rate."
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Phase 6: Next.js Dashboard Visualization",
+      "description": "Complete Next.js dashboard with real-time map showing 207 sensor locations, live predictions, color-coded traffic conditions, and interactive features",
+      "status": "in-progress",
+      "priority": "high",
+      "dependencies": [5],
+      "details": "Dashboard must consume traffic-predictions via SSE, render interactive Leaflet map centered on LA (34.0522, -118.2437), show color-coded markers, sensor popups, and real-time metrics",
+      "testStrategy": "Verify map shows all 207 sensors, colors update in real-time based on predictions, popups show accurate data, performance <5 second update latency",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Fix SSE prediction stream consumer",
+          "description": "Ensure /api/stream correctly consumes from traffic-predictions topic and streams to dashboard",
+          "status": "not-started",
+          "details": "API route must: subscribe to traffic-predictions Kafka topic, parse prediction messages, format as SSE events, handle client disconnections, implement heartbeat, log connection status."
+        },
+        {
+          "id": 2,
+          "title": "Implement Leaflet map with 207 sensor markers",
+          "description": "Render interactive map centered on LA with all sensor locations marked",
+          "status": "in-progress",
+          "details": "Use React Leaflet: center=(34.0522, -118.2437), zoom level for highway visibility, add OpenStreetMap base layer, place 207 markers at sensor coordinates, optimize marker rendering performance."
+        },
+        {
+          "id": 3,
+          "title": "Implement color-coded marker system",
+          "description": "Color markers based on speed: Red (<35 mph), Yellow (35-55 mph), Green (>55 mph)",
+          "status": "not-started",
+          "details": "Create marker components: RedMarker for congested, YellowMarker for moderate, GreenMarker for free-flow, update marker color when predictions arrive, add smooth color transitions."
+        },
+        {
+          "id": 4,
+          "title": "Implement interactive sensor popups",
+          "description": "Show sensor details on click: ID, speed, timestamp, coordinates, prediction",
+          "status": "not-started",
+          "details": "Popup must display: sensor_id, current_speed with unit, last_update timestamp, exact coordinates, next hour prediction, confidence score, historical trend (up/down arrow)."
+        },
+        {
+          "id": 5,
+          "title": "Add real-time dashboard metrics",
+          "description": "Show live counter, status indicators, performance metrics, data freshness",
+          "status": "not-started",
+          "details": "Dashboard cards: active sensors count (207), total predictions received, average speed across network, system health status, last update timestamp, update frequency indicator."
+        },
+        {
+          "id": 6,
+          "title": "Implement map controls",
+          "description": "Add zoom, pan, layer toggle (satellite/street view) controls",
+          "status": "not-started",
+          "details": "Add controls: zoom in/out buttons, pan navigation, layer switcher (street/satellite/traffic), search by sensor ID, filter by congestion level, export current view."
+        },
+        {
+          "id": 7,
+          "title": "Optimize performance for real-time updates",
+          "description": "Ensure <5 second latency for prediction updates on map",
+          "status": "not-started",
+          "details": "Optimize: use React.memo for markers, implement virtual scrolling, debounce updates, use web workers for data processing, compress SSE messages, implement efficient state updates."
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Infrastructure & Operations",
+      "description": "Ensure all Docker services running correctly with proper health checks, monitoring interfaces accessible, and deployment automation",
+      "status": "in-progress",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Verify all 10 services (Zookeeper, Kafka, Schema Registry, Kafka UI, HDFS NameNode/DataNode, Spark Master/Worker, Postgres, Kafka Connect) are healthy and properly configured",
+      "testStrategy": "All services show healthy status, UIs accessible (Kafka UI:8085, HDFS:9871, Spark:8086, YARN:8089), proper port mappings, volume persistence works",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Verify all Docker services are running",
+          "description": "Check status of all 10 services defined in docker-compose.yml",
+          "status": "done",
+          "details": "Services verified: zookeeper, kafka-broker1, schema-registry, kafka-ui, namenode, datanode, spark-master, spark-worker, postgres, kafka-connect. All showing healthy/up status."
+        },
+        {
+          "id": 2,
+          "title": "Create Kafka topics with proper configuration",
+          "description": "Ensure traffic-raw, traffic-events, traffic-predictions topics exist with 5 partitions",
+          "status": "done",
+          "details": "Topics created: traffic-raw (5 partitions), traffic-events (4 partitions), traffic-predictions (4 partitions), processed-traffic-aggregates (4 partitions), traffic-alerts (4 partitions)."
+        },
+        {
+          "id": 3,
+          "title": "Configure HDFS directory structure",
+          "description": "Create required HDFS directories for raw data, processed data, features, models, predictions",
+          "status": "not-started",
+          "details": "Create directories: /traffic-data/raw/, /traffic-data/processed/aggregates/, /traffic-data/processed/ml-features/, /traffic-data/models/, /traffic-data/predictions/, set proper permissions."
+        },
+        {
+          "id": 4,
+          "title": "Verify management UIs accessibility",
+          "description": "Confirm Kafka UI (8085), HDFS NameNode (9871), Spark Master (8086), YARN (8089) accessible",
+          "status": "done",
+          "details": "All UIs verified accessible: Kafka UI at localhost:8085, HDFS NameNode at localhost:9871, Spark Master at localhost:8086, YARN ResourceManager at localhost:8089."
+        },
+        {
+          "id": 5,
+          "title": "Implement health check monitoring",
+          "description": "Create comprehensive health check script for all services",
+          "status": "not-started",
+          "details": "Health check script should: ping all service endpoints, verify Kafka broker connectivity, check HDFS namenode status, verify Spark master, test database connections, alert on failures."
+        },
+        {
+          "id": 6,
+          "title": "Create startup automation script",
+          "description": "Build comprehensive start-all.ps1 that starts services in correct order with verification",
+          "status": "done",
+          "details": "start-all.ps1 exists and starts: Docker services, Hadoop (if needed), Kafka topics verification, Next.js dashboard. Add health checks and retry logic for robustness."
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "End-to-End Validation & Testing",
+      "description": "Complete end-to-end testing of entire pipeline from CSV ingestion to dashboard visualization with zero errors",
+      "status": "not-started",
+      "priority": "high",
+      "dependencies": [1, 2, 3, 4, 5, 6, 7],
+      "details": "Run complete pipeline: send CSV data → stream processing → feature engineering → ML training → prediction generation → dashboard visualization. Verify each stage works correctly with no errors, skips, or data loss",
+      "testStrategy": "Execute full pipeline test: 99 CSV records → Kafka → Stream processor (1004+ messages) → Features → Predictions → Dashboard shows 207 sensors with live updates. Zero errors, <5s latency",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Test CSV to Kafka ingestion",
+          "description": "Send 100 CSV records, verify 99 valid records in traffic-raw topic (1 skipped for negative speed)",
+          "status": "done",
+          "details": "Test completed: send-csv-events.ps1 sent 99/100 records to traffic-raw (skipped METR_LA_005 with -1.85 mph). Messages verified in Kafka topic."
+        },
+        {
+          "id": 2,
+          "title": "Test stream processing pipeline",
+          "description": "Verify stream processor consumes from traffic-raw, transforms data, outputs to traffic-events",
+          "status": "in-progress",
+          "details": "Stream processor processing 1004+ messages. Need to verify: output messages in traffic-events topic, transformations applied correctly, no message loss, windowing works."
+        },
+        {
+          "id": 3,
+          "title": "Test feature engineering pipeline",
+          "description": "Verify features generated correctly and stored to HDFS",
+          "status": "not-started",
+          "details": "Run feature engineering Spark job, verify output files in /traffic-data/processed/ml-features/, check feature values are correct, validate schema, confirm partitioning works."
+        },
+        {
+          "id": 4,
+          "title": "Test ML training pipeline",
+          "description": "Train models and verify 99.96% accuracy achieved",
+          "status": "not-started",
+          "details": "Run ML training, verify Random Forest achieves R²=0.9996, confirm models saved to HDFS (27.9MB Random Forest), validate metadata file, test model loading."
+        },
+        {
+          "id": 5,
+          "title": "Test prediction generation",
+          "description": "Verify predictions generated in real-time and published to traffic-predictions topic",
+          "status": "not-started",
+          "details": "Start prediction service, send test events, verify predictions appear in traffic-predictions topic within 5 seconds, check prediction format, validate confidence scores."
+        },
+        {
+          "id": 6,
+          "title": "Test dashboard visualization",
+          "description": "Verify all 207 sensors appear on map with correct colors and live updates",
+          "status": "not-started",
+          "details": "Open dashboard at localhost:3000, verify map renders, check 207 markers appear at correct LA coordinates, click markers to test popups, verify color changes with predictions, test real-time updates."
+        },
+        {
+          "id": 7,
+          "title": "Test performance metrics",
+          "description": "Verify system meets performance targets: 5-8 records/sec ingestion, <5s latency, 99.96% accuracy",
+          "status": "not-started",
+          "details": "Measure: CSV ingestion rate (target 5-8 rec/sec), stream processing latency (target <5s), prediction generation latency, dashboard update frequency, end-to-end latency from CSV to map."
+        },
+        {
+          "id": 8,
+          "title": "Test error handling and recovery",
+          "description": "Verify system handles errors gracefully: invalid data, service failures, network issues",
+          "status": "not-started",
+          "details": "Test scenarios: send invalid CSV data, stop/restart services, simulate network failures, test consumer rebalancing, verify data integrity after recovery, check error logs."
+        }
+      ]
+    }
+  ]
+}

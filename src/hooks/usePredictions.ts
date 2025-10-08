@@ -14,6 +14,10 @@ export interface TrafficPrediction {
   prediction_time: string;
   speed_diff: number;
   category: 'free_flow' | 'moderate_traffic' | 'heavy_traffic' | 'severe_congestion';
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface PredictionStats {

@@ -6,6 +6,25 @@
 ![Frontend](https://img.shields.io/badge/Frontend-Next.js%2015-black)
 ![Backend](https://img.shields.io/badge/Backend-FastAPI-red)
 
+---
+
+## 🎯 **Quick Start: ONE-CLICK LAUNCH**
+
+```powershell
+# Start the entire system and open unified dashboard
+.\start-dashboard.ps1
+```
+
+**Then open:** [http://localhost:3000](http://localhost:3000) 🚀
+
+**✨ See everything in one page:**
+- 🟢 6 service statuses with live health checks
+- 🗺️ Real-time traffic map with predictions
+- 📊 Analytics and statistics
+- 🔗 Quick links to Kafka UI, HDFS UI, YARN UI
+
+---
+
 ## 🎯 Problem Statement
 
 Urban roads face unpredictable congestion, and existing traffic management systems struggle to adapt in real-time. Traffic bottlenecks cause economic losses, environmental impact, and reduced quality of life for millions of commuters.
@@ -139,6 +158,52 @@ traffic-alerts             # Critical congestion alerts
 
 ## 🌐 Frontend Architecture (Next.js 15)
 
+### 🎯 Unified System Dashboard (localhost:3000)
+
+**The main dashboard provides a complete system overview in one page:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🚦 Real-Time Traffic Prediction System         [6/6 Running] │
+├─────────────────────────────────────────────────────────────────┤
+│  Service Status Grid:                                           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │ 📨 Kafka     │  │ 💾 HDFS      │  │ ⚙️ YARN      │         │
+│  │ ● Running    │  │ ● Running    │  │ ● Running    │         │
+│  │ [Open UI]    │  │ [Open UI]    │  │ [Open UI]    │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │ 📊 Kafka UI  │  │ 🔄 Stream    │  │ 🤖 ML Pred   │         │
+│  │ ● Running    │  │ ● Running    │  │ ● Connected  │         │
+│  │ [Open UI]    │  │ Health: OK   │  │ 42 events    │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+├─────────────────────────────────────────────────────────────────┤
+│  Live Traffic Map:                        │  Analytics Panel:  │
+│  ┌────────────────────────────────────┐  │  ┌──────────────┐  │
+│  │                                     │  │  │ Total Pred:  │  │
+│  │    🗺️  Los Angeles Region          │  │  │   1,247      │  │
+│  │                                     │  │  │              │  │
+│  │    🟢 Free Flow (65+ mph)          │  │  │ Avg Speed:   │  │
+│  │    🟡 Moderate (35-65 mph)         │  │  │   54 mph     │  │
+│  │    🔴 Congested (<35 mph)          │  │  │              │  │
+│  │                                     │  │  │ Congested:   │  │
+│  │    [Interactive markers with       │  │  │   18%        │  │
+│  │     speed and congestion data]     │  │  │              │  │
+│  │                                     │  │  │ Recent:      │  │
+│  └────────────────────────────────────┘  │  │ • seg_101... │  │
+│                                           │  │ • seg_205... │  │
+│  [🔄 Refresh] [📊 Kafka UI] [💾 HDFS]    │  └──────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Features:**
+- ✅ **Real-time Service Monitoring**: All 6 services with live health checks
+- ✅ **Live Traffic Map**: Predictions appear as they're generated (SSE-powered)
+- ✅ **Analytics Panel**: Statistics updated every 10 seconds
+- ✅ **Quick Actions**: One-click access to Kafka UI, HDFS UI, YARN UI
+- ✅ **Status Alerts**: Connection errors and waiting states displayed
+- ✅ **Auto-Refresh**: Service status checks every 10 seconds
+
 ### Dashboard Components
 - **CongestionHeatmap**: Interactive LA region map with real-time data
 - **CityPlannerDashboard**: Comprehensive traffic management interface
@@ -201,16 +266,54 @@ WebSocket /ws/alerts                  # Critical alert notifications
 ### Prerequisites
 - **Java 11+** (for Hadoop/Kafka)
 - **Python 3.11+** (for ML components)
-- **Node.js 18+** (for React frontend)
+- **Node.js 18+** (for Next.js frontend)
 - **Docker & Docker Compose** (for service orchestration)
 
-### 1. Clone Repository
+### 🎯 **ONE-CLICK START (Recommended)**
+
+Launch the entire system with a single command:
+
+```powershell
+# Start all services and open unified dashboard
+.\start-dashboard.ps1
+```
+
+**What This Does:**
+1. ✅ Verifies Docker is running
+2. ✅ Starts Kafka, HDFS, YARN, HBase, Zookeeper
+3. ✅ Launches Next.js dashboard
+4. ✅ Opens browser to **http://localhost:3000**
+5. ✅ Displays all service URLs and status
+
+**🎨 Unified Dashboard Features:**
+- **Real-time Service Status**: Monitor all 6 services with live health checks
+- **Live Traffic Map**: See predictions appear in real-time on interactive map
+- **Analytics Panel**: View traffic statistics, congestion levels, and trends
+- **Quick Actions**: One-click access to Kafka UI, HDFS UI, YARN UI
+- **Auto-Refresh**: Service status updates every 10 seconds
+
+### Access the System
+- **🎯 Unified Dashboard**: http://localhost:3000 *(Everything in one page!)*
+- **Real-Time Predictions Dashboard**: http://localhost:3000/predictions
+- **City Planner Tools**: http://localhost:3000/city-planner
+- **API Documentation**: http://localhost:8000/docs
+- **Kafka UI**: http://localhost:8080
+- **HDFS NameNode**: http://localhost:9870
+- **YARN ResourceManager**: http://localhost:8088
+
+---
+
+### 📋 **Manual Setup (Advanced Users)**
+
+If you prefer step-by-step control:
+
+#### 1. Clone Repository
 ```bash
 git clone https://github.com/your-org/traffic-prediction.git
 cd traffic-prediction
 ```
 
-### 2. Start Hadoop Ecosystem
+#### 2. Start Hadoop Ecosystem
 ```powershell
 # Start Hadoop services (HDFS, YARN, MapReduce)
 .\start-hadoop.ps1
@@ -219,7 +322,7 @@ cd traffic-prediction
 .\verify-hadoop.ps1
 ```
 
-### 3. Start Kafka Services
+#### 3. Start Kafka Services
 ```powershell
 # Start Kafka, Zookeeper, Schema Registry
 .\scripts\start-kafka-services.ps1
@@ -229,7 +332,7 @@ cd traffic-prediction
 .\scripts\deploy-hdfs-connector.ps1
 ```
 
-### 4. Setup Python Environment
+#### 4. Setup Python Environment
 ```bash
 # Create virtual environment
 python -m venv .venv
@@ -240,13 +343,13 @@ pip install -r requirements.txt
 pip install numpy pandas scikit-learn kafka-python requests
 ```
 
-### 5. Start Backend API
+#### 5. Start Backend API
 ```bash
 # Start FastAPI server
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 6. Start Frontend Dashboard
+#### 6. Start Frontend Dashboard
 ```bash
 # Install Node.js dependencies
 npm install
@@ -255,14 +358,29 @@ npm install
 npm run dev
 ```
 
-### 7. Access Dashboards
-- **Real-Time Predictions Dashboard**: http://localhost:3000/predictions
-- **City Planner Tools**: http://localhost:3000/city-planner
-- **API Documentation**: http://localhost:8000/docs
-- **Kafka UI**: http://localhost:8080
-- **HDFS NameNode**: http://localhost:9870
+#### 7. Send Test Data
+```powershell
+# Generate and stream test traffic events
+.\scripts\send-test-events.ps1 -Count 10
+
+# Watch predictions appear on the unified dashboard in real-time!
+```
 
 ## 🧪 Testing & Validation
+
+### Quick System Demo
+```powershell
+# 1. Start the unified dashboard
+.\start-dashboard.ps1
+
+# 2. Send test traffic events (in a new terminal)
+.\scripts\send-test-events.ps1 -Count 10
+
+# 3. Watch predictions appear in real-time on http://localhost:3000
+#    - Green markers = Free flow traffic
+#    - Yellow markers = Moderate congestion  
+#    - Red markers = Heavy congestion
+```
 
 ### System Testing
 ```bash
@@ -346,12 +464,52 @@ traffic-prediction/
 │   └── hadoop/                 # Hadoop integration
 ├── config/                     # Configuration files
 ├── scripts/                    # Automation scripts
+│   ├── start-dashboard.ps1     # One-click system startup
+│   ├── send-test-events.ps1    # Test data generator
+│   └── ...                     # Other utility scripts
 ├── schemas/                    # Avro schemas
 ├── data/                       # Data storage
 ├── logs/                       # Application logs
 ├── docs/                       # Documentation
+│   ├── DATA_FLOW_AND_WORKFLOW.md  # Complete system workflows
+│   ├── COMPREHENSIVE_DOCUMENTATION.md
+│   └── ...
 └── tests/                      # Test suites
 ```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+**Problem: Services not starting**
+```powershell
+# Check if Docker is running
+docker ps
+
+# Restart Docker Desktop if needed
+```
+
+**Problem: No predictions appearing on dashboard**
+```powershell
+# Send test events to generate predictions
+.\scripts\send-test-events.ps1 -Count 10
+
+# Verify Kafka consumer is running (check dashboard status)
+```
+
+**Problem: Kafka rebalancing errors**
+```powershell
+# Stop all Node processes
+Get-Process -Name node | Stop-Process -Force
+
+# Restart the dashboard
+.\start-dashboard.ps1
+```
+
+**For comprehensive troubleshooting**, see:
+- [docs/DATA_FLOW_AND_WORKFLOW.md](docs/DATA_FLOW_AND_WORKFLOW.md) - Troubleshooting section with 5 common issues
+- Check service logs in the unified dashboard
+- Verify service status on http://localhost:3000
 
 ## 🤝 Contributing
 
@@ -383,9 +541,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 ### Documentation
-- **API Docs**: http://localhost:8000/docs
-- **Architecture Guide**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **Deployment Guide**: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- **📊 Unified Dashboard**: http://localhost:3000 *(Start here!)*
+- **📖 Complete Data Flow & Workflows**: [docs/DATA_FLOW_AND_WORKFLOW.md](docs/DATA_FLOW_AND_WORKFLOW.md)
+- **🏗️ Architecture Guide**: [docs/COMPREHENSIVE_DOCUMENTATION.md](docs/COMPREHENSIVE_DOCUMENTATION.md)
+- **🔧 API Documentation**: http://localhost:8000/docs (FastAPI Swagger UI)
+- **🎯 Kafka Topics Configuration**: [config/kafka-topic-configurations.md](config/kafka-topic-configurations.md)
+- **🤖 ML Training Guide**: [docs/ML_TRAINING_SYSTEM.md](docs/ML_TRAINING_SYSTEM.md)
+- **💾 HDFS Storage Pipeline**: [docs/HDFS_STORAGE_PIPELINE.md](docs/HDFS_STORAGE_PIPELINE.md)
+
+### Quick Links
+- **🚀 One-Click Start**: Run `.\start-dashboard.ps1`
+- **🧪 Test Data Generator**: Run `.\scripts\send-test-events.ps1 -Count 10`
+- **🔍 Troubleshooting**: See [DATA_FLOW_AND_WORKFLOW.md](docs/DATA_FLOW_AND_WORKFLOW.md#troubleshooting)
 
 ### Contact Information
 - **Project Lead**: [your-email@domain.com](mailto:your-email@domain.com)

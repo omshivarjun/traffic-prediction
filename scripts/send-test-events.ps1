@@ -18,7 +18,13 @@ Write-Host "Events to send: $Count" -ForegroundColor Yellow
 Write-Host "Delay between events: $DelaySeconds seconds" -ForegroundColor Yellow
 Write-Host ""
 
-$segments = @("LA_001", "LA_002", "LA_003", "LA_004", "LA_005")
+$segments = @(
+    @{ id = "LA_001"; lat = 34.0522; lon = -118.2437; name = "I-10 Downtown" },
+    @{ id = "LA_002"; lat = 34.0689; lon = -118.4452; name = "I-405 West LA" },
+    @{ id = "LA_003"; lat = 34.1478; lon = -118.1445; name = "I-210 Pasadena" },
+    @{ id = "LA_004"; lat = 33.9425; lon = -118.4081; name = "I-105 LAX" },
+    @{ id = "LA_005"; lat = 34.2014; lon = -118.5290; name = "US-101 Woodland Hills" }
+)
 $startTimestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 
 for ($i = 1; $i -le $Count; $i++) {
@@ -28,12 +34,18 @@ for ($i = 1; $i -le $Count; $i++) {
     $volume = Get-Random -Minimum 250 -Maximum 550
     $timestamp = $startTimestamp + ($i * 60000) # 1 minute increments
     
-    # Create valid JSON (PowerShell will handle escaping properly)
+    # Create valid JSON with coordinates (PowerShell will handle escaping properly)
     $event = @{
-        segment_id = $segment
+        segment_id = $segment.id
+        sensor_id = $segment.id
         timestamp = $timestamp
         speed = [double]$speed + 0.5
         volume = $volume
+        coordinates = @{
+            latitude = $segment.lat
+            longitude = $segment.lon
+        }
+        road_name = $segment.name
     } | ConvertTo-Json -Compress
     
     # Write to temp file
@@ -42,7 +54,7 @@ for ($i = 1; $i -le $Count; $i++) {
     
     # Send to Kafka via file
     Write-Host "[$i/$Count] Sending: " -NoNewline -ForegroundColor Green
-    Write-Host "$segment @ $($speed + 0.5) mph, $volume vehicles" -ForegroundColor White
+    Write-Host "$($segment.id) ($($segment.name)) @ $($speed + 0.5) mph, $volume vehicles" -ForegroundColor White
     
     docker exec kafka-broker1 bash -c "echo '$event' | kafka-console-producer --bootstrap-server localhost:9092 --topic traffic-events" 2>&1 | Out-Null
     

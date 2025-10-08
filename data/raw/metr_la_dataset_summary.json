@@ -1,0 +1,20 @@
+{
+  "dataset_info": {
+    "name": "METR-LA Traffic Dataset (Synthetic)",
+    "description": "Traffic speed and volume data from Los Angeles traffic sensors",
+    "num_sensors": 207,
+    "date_range": {
+      "start": "2023-01-01T00:00:00",
+      "end": "2023-12-31T00:00:00"
+    },
+    "measurement_interval": "5 minutes",
+    "total_records": 21700224,
+    "file_size_mb": 8123.82
+  },
+  "sensor_distribution": {
+    "highway": 37,
+    "arterial": 82,
+    "local": 88
+  },
+  "data_quality": {
+    "missing_speed_records": 

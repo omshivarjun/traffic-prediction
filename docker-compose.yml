@@ -223,7 +223,7 @@ services:
       - schema-registry
     environment:
       KAFKA_BROKERS: kafka-broker1:9092
-      GROUP_ID: stream-processor-group
+      GROUP_ID: stream-processor-group-v2  # Changed to v2 to force reading from beginning
       CLIENT_ID: stream-processor-client
       INPUT_TOPIC: traffic-raw
       OUTPUT_TOPIC: traffic-events

@@ -253,9 +253,10 @@ export default function TrafficMapWithPredictions({
         {showPredictionLayer && (
           <LayerGroup>
             {predictions.map((prediction) => {
-              const coords = segmentCoordinates.get(prediction.segment_id);
+              // Use coordinates from the prediction if available
+              const coords = (prediction as any).coordinates || segmentCoordinates.get(prediction.segment_id);
               
-              if (!coords) {
+              if (!coords || !coords.latitude || !coords.longitude) {
                 return null;
               }
 

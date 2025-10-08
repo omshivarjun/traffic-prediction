@@ -1,161 +1,127 @@
-# ========================================
-# DOCKER IGNORE - Container Size Optimization
-# ========================================
-# Reduces Docker image sizes by excluding unnecessary files
+# Git
+.git/
+.gitignore
+.gitattributes
 
-# ==========================================
-# LARGE DEPENDENCIES & BUILD ARTIFACTS
-# ==========================================
-# Node.js dependencies (will be installed in container)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# Documentation
+*.md
+docs/
+README.md
+LICENSE
 
-# Python virtual environments (will be created in container)
-.venv/
-venv/
-env/
-ENV/
-__pycache__/
-*.py[cod]
-*$py.class
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
 
-# Build outputs
-.next/
-out/
-build/
-dist/
-*.tsbuildinfo
-
-# ==========================================
-# DATA FILES (Large datasets)
-# ==========================================
-# Exclude large datasets from Docker images
-data/raw/metr-la/
-data/processed/*.csv
-data/metr-la/
-*.pkl
-*.joblib
-
-# Keep only essential metadata files
-!data/raw/metr_la_sensor_metadata.csv
-!data/raw/sample_dataset_summary.json
-
-# ==========================================
-# LOGS & TEMPORARY FILES
-# ==========================================
-logs/
-*.log
-*.log.*
-tmp/
-temp/
-.tmp/
-.temp/
-
-# ==========================================
-# DEVELOPMENT FILES
-# ==========================================
-# Editor and IDE files
+# IDE
 .vscode/
-.cursor/
 .idea/
 *.swp
 *.swo
-*~
-
-# Git history (not needed in container)
-.git/
-.gitignore
-
-# AI assistant rules
-.clinerules/
 .kilocode/
-.roo/
+.cursor/
 .windsurf/
-.trae/
-.taskmaster/
+.roo/
+.kiro/
+.qoder/
+.augment/
+.clinerules/
 
-# ==========================================
-# DOCUMENTATION (Keep essential only)
-# ==========================================
-# Large documentation files (available in repo)
-docs/COMPREHENSIVE_DOCUMENTATION.md
-COMPLETE_PROJECT_EXPLANATION.md
-VISUAL_WORKFLOW_DIAGRAMS.md
-PROJECT_REPORT_CONTENT.md
-POWERPOINT_SLIDES_CONTENT.md
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.next/
+out/
+*.tsbuildinfo
 
-# Keep essential docs
-!README.md
-!docs/CONFIGURATION.md
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
 
-# ==========================================
-# OPERATING SYSTEM FILES
-# ==========================================
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Linux
-*~
-.directory
-.Trash-*
-
-# ==========================================
-# TEST & COVERAGE FILES
-# ==========================================
-# Test outputs (not needed in production)
-coverage/
-test-results/
-.nyc_output/
-*.xml
-
-# Keep essential test files
-!tests/integration_test.py
-
-# ==========================================
-# SECRETS & ENVIRONMENT
-# ==========================================
-# Environment files with secrets
+# Environment files (already in containers)
 .env
 .env.*
-!.env.example
+*.env
+.env.example
+.env.template
 
-# Configuration with secrets
-producer_config.ini
+# Test files
+tests/
+test_*.py
+*_test.py
+*.test.js
+*.spec.js
+test_results/
+coverage/
 
-# ==========================================
-# CACHE & TEMPORARY
-# ==========================================
-# Cache directories
-.cache/
-.npm/
-.eslintcache
-.parcel-cache/
+# Scripts (not needed in containers)
+scripts/*.ps1
+*.ps1
+*.sh
 
-# Temporary files
+# Temporary and log files
+*.log
 *.tmp
 *.temp
+*.cache
+*.bak
+temp_*/
+logs/
+server.log
+sse-test.log
 
-# ==========================================
-# KEEP ESSENTIAL FILES
-# ==========================================
-# Force include critical files
-!docker-compose.yml
-!Dockerfile*
-!requirements*.txt
-!package.json
-!tsconfig.json
-!next.config.*
-!schemas/
-!config/
-!scripts/
+# Data files (should be mounted as volumes)
+data/raw/*.csv
+data/processed/*.csv
+notebooks/
+
+# Hadoop/Spark
+metastore_db/
+derby.log
+spark-warehouse/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Task management
+.taskmaster/
+tasks/
+
+# Test and validation reports
+*_REPORT.md
+*_SUMMARY.md
+*_STATUS.md
+*_COMPLETE.md
+connectivity_*.json
+todo7_test_results.txt
+test-event.json
+temp_sample.jsonl
+
+# Models (mount as volume if needed)
+temp_models/
+*.pkl
+*.joblib
+*.model
+
+# Docker compose files (not needed inside containers)
+docker-compose*.yml
+Dockerfile*
+
+# Config files that shouldn't be in container
+*.ini
+producer_config.ini

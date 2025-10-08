@@ -106,7 +106,9 @@ $supportingTopics = @(
 )
 
 # Enhanced topic creation function with detailed reporting
-function New-KafkaTopics {
+function Create-KafkaTopics {
+    param($topicList, $topicType)
+    
     Write-Host "`n--- Creating $topicType ---" -ForegroundColor Magenta
     
     foreach ($topic in $topicList) {
